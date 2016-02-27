@@ -1,8 +1,14 @@
 {
   "name": "homebridge-people",
+  "version": "0.1",
+  "description": "Homebridge plugin that provides details of who is in a Home",
   "keywords": [
     "homebridge-plugin"
   ],
+  "repository": {
+	"type": "git",
+	"url": "https://github.com/PeteLawrence/homebridge-people.git"
+  },
   "engines": {
     "node": ">=0.12.0",
     "homebridge": ">=0.2.0"
