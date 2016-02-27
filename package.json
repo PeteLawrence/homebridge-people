@@ -1,0 +1,15 @@
+{
+  "name": "homebridge-people",
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "dependencies": {
+    "moment": "^2.11.2",
+    "node-json-db": "^0.6.2",
+    "ping": "^0.1.10"
+  }
+}
