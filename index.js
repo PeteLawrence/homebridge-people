@@ -15,8 +15,9 @@ function PeopleAccessory(log, config) {
   this.log = log;
   this.name = config['name'];
   this.people = config['people'];
-  this.services = [];
+  this.threshold = config['threshold'];
   this.db = new JsonDB("seen.db", true, false);
+  this.services = [];
 
   config['people'].forEach(function(person) {
     var service = new Service.OccupancySensor(person.name, person.name);
@@ -36,7 +37,7 @@ PeopleAccessory.prototype.getServices = function() {
 
 PeopleAccessory.prototype.getState = function(ip, callback) {
   var lastSeen = moment(this.db.getData('/' + ip));
-  var activeTreshold = moment().subtract(5, 'm');
+  var activeTreshold = moment().subtract(this.threshold, 'm');
 
   var isActive = lastSeen.isAfter(activeTreshold);
 

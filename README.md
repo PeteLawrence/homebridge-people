@@ -5,7 +5,7 @@ This is a plugin for homebridge. It monitors who is at home, based on their smar
 
 1. Install homebridge (if not already installed) using: npm install -g homebridge
 2. Install this plugin using: npm install -g homebridge-people
-3. Update your configuration file. See below for a sample. 
+3. Update your configuration file. See below for a sample.
 
 # Configuration
 
@@ -18,7 +18,7 @@ This is a plugin for homebridge. It monitors who is at home, based on their smar
       { "name" : "Pete", "ip" : "192.168.1.67" },
       { "name" : "Someone Else", "ip" : "192.168.1.68" }
     ],
-    "threshold" : 5
+    "threshold" : 15
   }
 ],
 ```
