@@ -36,9 +36,15 @@ PeopleAccessory.prototype.getServices = function() {
 }
 
 PeopleAccessory.prototype.getState = function(ip, callback) {
-  var lastSeen = moment(this.db.getData('/' + ip));
-  var activeTreshold = moment().subtract(this.threshold, 'm');
+  var lastSeen;
+  try {
+    lastSeen = moment(this.db.getData('/' + ip));
+  } catch(error) {
+    callback(null, false);
+    return;
+  }
 
+  var activeTreshold = moment().subtract(this.threshold, 'm');
   var isActive = lastSeen.isAfter(activeTreshold);
 
   callback(null, isActive);
