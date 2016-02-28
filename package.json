@@ -1,6 +1,6 @@
 {
   "name": "homebridge-people",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Homebridge plugin that provides details of who is in a Home",
   "keywords": [
     "homebridge-plugin"
