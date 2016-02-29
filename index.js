@@ -1,12 +1,12 @@
 var ping = require('ping');
-var JsonDB = require('node-json-db');
 var moment = require('moment');
 
-var Service, Characteristic;
+var Service, Characteristic, HomebridgeAPI;
 
 module.exports = function(homebridge) {
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
+  HomebridgeAPI = homebridge;
 
   homebridge.registerAccessory("homebridge-people", "people", PeopleAccessory);
 }
@@ -16,9 +16,15 @@ function PeopleAccessory(log, config) {
   this.name = config['name'];
   this.people = config['people'];
   this.threshold = config['threshold'];
-  this.db = new JsonDB("seen.db", true, false);
   this.services = [];
+  this.storage = require('node-persist');
 
+  //Init storage
+  this.storage.initSync({
+    dir: HomebridgeAPI.user.persistPath()
+  });
+
+  //Setup an OccupancySensor for each person defined in the config file
   config['people'].forEach(function(person) {
     var service = new Service.OccupancySensor(person.name, person.name);
     service
@@ -28,6 +34,7 @@ function PeopleAccessory(log, config) {
     this.services.push(service);
   }.bind(this));
 
+  //Start pinging the hosts
   this.pingHosts();
 }
 
@@ -36,25 +43,28 @@ PeopleAccessory.prototype.getServices = function() {
 }
 
 PeopleAccessory.prototype.getState = function(ip, callback) {
-  var lastSeen;
-  try {
-    lastSeen = moment(this.db.getData('/' + ip));
-  } catch(error) {
+  var lastSeenUnix = this.storage.getItem('person_' + ip);
+
+  //Check whether we have a last seen record or not
+  if (!lastSeenUnix) {
+    //No record, so the device must be offline
     callback(null, false);
     return;
+  } else {
+    //Found record, work out whether it is recent enough or not
+    var lastSeenMoment = moment(lastSeenUnix);
+    var activeTreshold = moment().subtract(this.threshold, 'm');
+    var isActive = lastSeenMoment.isAfter(activeTreshold);
+
+    callback(null, isActive);
   }
-
-  var activeTreshold = moment().subtract(this.threshold, 'm');
-  var isActive = lastSeen.isAfter(activeTreshold);
-
-  callback(null, isActive);
 }
 
 PeopleAccessory.prototype.pingHosts = function() {
   this.people.forEach(function(person) {
     ping.sys.probe(person.ip, function(isAlive){
       if (isAlive) {
-        this.db.push('/' + person.ip, Date.now());
+        this.storage.setItem('person_' + person.ip, Date.now());
       }
     }.bind(this));
   }.bind(this));
