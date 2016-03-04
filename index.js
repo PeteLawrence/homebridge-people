@@ -25,11 +25,12 @@ function PeopleAccessory(log, config) {
   });
 
   //Setup an OccupancySensor for each person defined in the config file
-  config['people'].forEach(function(person) {
-    var service = new Service.OccupancySensor(person.name, person.name);
+  config['people'].forEach(function(personConfig) {
+    var target = this.getTarget(personConfig);
+    var service = new Service.OccupancySensor(personConfig.name, personConfig.name);
     service
       .getCharacteristic(Characteristic.OccupancyDetected)
-      .on('get', this.getState.bind(this, person.ip));
+      .on('get', this.getState.bind(this, target));
 
     this.services.push(service);
   }.bind(this));
@@ -42,8 +43,8 @@ PeopleAccessory.prototype.getServices = function() {
   return this.services;
 }
 
-PeopleAccessory.prototype.getState = function(ip, callback) {
-  var lastSeenUnix = this.storage.getItem('person_' + ip);
+PeopleAccessory.prototype.getState = function(target, callback) {
+  var lastSeenUnix = this.storage.getItem('person_' + target);
 
   //Check whether we have a last seen record or not
   if (!lastSeenUnix) {
@@ -61,13 +62,27 @@ PeopleAccessory.prototype.getState = function(ip, callback) {
 }
 
 PeopleAccessory.prototype.pingHosts = function() {
-  this.people.forEach(function(person) {
-    ping.sys.probe(person.ip, function(isAlive){
+  this.people.forEach(function(personConfig) {
+
+    var target = this.getTarget(personConfig);
+
+    ping.sys.probe(target, function(isAlive){
       if (isAlive) {
-        this.storage.setItem('person_' + person.ip, Date.now());
+        this.storage.setItem('person_' + target, Date.now());
       }
     }.bind(this));
   }.bind(this));
 
   setTimeout(PeopleAccessory.prototype.pingHosts.bind(this), 1000);
+}
+
+/**
+ * Handle old config entries that use a key of 'ip' instead of 'target'
+ */
+PeopleAccessory.prototype.getTarget = function(personConfig) {
+  if (personConfig.ip) {
+    return personConfig;
+  }
+
+  return personConfig.target;
 }

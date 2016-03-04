@@ -15,13 +15,15 @@ This is a plugin for homebridge. It monitors who is at home, based on their smar
     "accessory" : "people",
     "name" : "People",
     "people" : [
-      { "name" : "Pete", "ip" : "192.168.1.67" },
-      { "name" : "Someone Else", "ip" : "192.168.1.68" }
+      { "name" : "Pete", "target" : "PetesiPhone" },
+      { "name" : "Someone Else", "target" : "192.168.1.68" }
     ],
     "threshold" : 15
   }
 ],
 ```
+
+```target``` may be either a hostname or an IP address
 
 # How it works
 * When started homebridge-people will continually ping the IP address associated with each person defined in config.json.
