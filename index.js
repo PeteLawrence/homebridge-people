@@ -97,7 +97,7 @@ PeopleAccessory.prototype.pingHosts = function() {
  */
 PeopleAccessory.prototype.getTarget = function(personConfig) {
   if (personConfig.ip) {
-    return personConfig;
+    return personConfig.ip;
   }
 
   return personConfig.target;
