@@ -20,6 +20,7 @@ function PeopleAccessory(log, config) {
   this.threshold = config['threshold'];
   this.services = [];
   this.storage = require('node-persist');
+  this.stateCache = [];
 
   //Init storage
   this.storage.initSync({
@@ -30,6 +31,7 @@ function PeopleAccessory(log, config) {
   config['people'].forEach(function(personConfig) {
     var target = this.getTarget(personConfig);
     var service = new Service.OccupancySensor(personConfig.name, personConfig.name);
+    service.target = target;
     service
       .getCharacteristic(Characteristic.OccupancyDetected)
       .on('get', this.getState.bind(this, target));
@@ -45,13 +47,41 @@ function PeopleAccessory(log, config) {
 
   this.services.push(service);
 
+  this.populateStateCache();
+
   //Start pinging the hosts
   this.pingHosts();
 }
 
+PeopleAccessory.prototype.populateStateCache = function() {
+  this.people.forEach(function(personConfig) {
+    var target = this.getTarget(personConfig);
+    var isActive = this.targetIsActive(target);
+
+    this.stateCache[target] = isActive;
+  }.bind(this));
+}
+
+PeopleAccessory.prototype.updateStateCache = function(target, state) {
+  this.stateCache[target] = state;
+}
+
+PeopleAccessory.prototype.getStateFromCache = function(target) {
+  return this.stateCache[target];
+}
 
 PeopleAccessory.prototype.getServices = function() {
   return this.services;
+}
+
+PeopleAccessory.prototype.getServiceForTarget = function(target) {
+  console.log(target);
+  var service = this.services.find(function(target, service) {
+    console.log(service);
+    return (service.target == target);
+  }.bind(this, target));
+
+  return service;
 }
 
 
@@ -81,9 +111,18 @@ PeopleAccessory.prototype.pingHosts = function() {
   this.people.forEach(function(personConfig) {
 
     var target = this.getTarget(personConfig);
-    ping.sys.probe(target, function(isAlive){
-      if (isAlive) {
+    ping.sys.probe(target, function(state){
+      //If target is alive update the last seen time
+      if (state) {
         this.storage.setItem('person_' + target, Date.now());
+      }
+
+      var oldState = this.getStateFromCache(target);
+      var newState = this.targetIsActive(target);
+      if (oldState != newState) {
+        this.updateStateCache(target, newState);
+        var service = this.getServiceForTarget(target);
+        service.getCharacteristic(Characteristic.OccupancyDetected).setValue(newState);
       }
     }.bind(this));
   }.bind(this));
@@ -109,9 +148,10 @@ PeopleAccessory.prototype.targetIsActive = function(target) {
 
   if (lastSeenUnix) {
     var lastSeenMoment = moment(lastSeenUnix);
-    var activeTreshold = moment().subtract(this.threshold, 'm');
+    //var activeThreshold = moment().subtract(this.threshold, 'm');
+    var activeThreshold = moment().subtract(10, 's');
 
-    var isActive = lastSeenMoment.isAfter(activeTreshold);
+    var isActive = lastSeenMoment.isAfter(activeThreshold);
 
     if (isActive) {
       return true;
