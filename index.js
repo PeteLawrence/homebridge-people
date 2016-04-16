@@ -148,8 +148,8 @@ PeopleAccessory.prototype.targetIsActive = function(target) {
 
   if (lastSeenUnix) {
     var lastSeenMoment = moment(lastSeenUnix);
-    //var activeThreshold = moment().subtract(this.threshold, 'm');
-    var activeThreshold = moment().subtract(10, 's');
+    var activeThreshold = moment().subtract(this.threshold, 'm');
+    //var activeThreshold = moment().subtract(10, 's');
 
     var isActive = lastSeenMoment.isAfter(activeThreshold);
 
