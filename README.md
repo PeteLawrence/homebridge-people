@@ -34,3 +34,7 @@ This is a plugin for homebridge. It monitors who is at home, based on their smar
 This plugin requires that the devices being monitored are connected to the network.  iPhones (and I expect others) deliberately disconnect from the network once the screen is turned off to save power, meaning just because the device isn't connected, it doesn't mean that the devices owner isn't at home.  Fortunately, iPhones (and I expect others) periodically reconnect to the network to check for updates, emails, etc.  This plugin works by keeping track of the last time a device was seen, and comparing that to a threshold value (in minutes).
 
 From a _very_ limited amount of testing, I've found that a threshold of 15 minutes seems to work well for the phones that I have around, but for different phones this may or may not work.  The threshold can be configured in the ```.homebridge/config.json``` file.
+
+# Notes
+## Running on a raspberry pi as non 'pi' user
+On some versions of raspbian, users are not able to use the ping program by default.  If none of your devices show online try running ```sudo chmod u+s /bin/ping```.  Thanks to oberstmueller for the tip.
