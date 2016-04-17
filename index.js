@@ -41,6 +41,7 @@ function PeopleAccessory(log, config) {
 
   //Setup an ANYONE OccupancySensor
   var service = new Service.OccupancySensor('ANYONE', 'ANYONE');
+  service.target = 'ANYONE';
   service
     .getCharacteristic(Characteristic.OccupancyDetected)
     .on('get', this.getAnyoneState.bind(this));
@@ -75,9 +76,7 @@ PeopleAccessory.prototype.getServices = function() {
 }
 
 PeopleAccessory.prototype.getServiceForTarget = function(target) {
-  console.log(target);
   var service = this.services.find(function(target, service) {
-    console.log(service);
     return (service.target == target);
   }.bind(this, target));
 
@@ -86,24 +85,29 @@ PeopleAccessory.prototype.getServiceForTarget = function(target) {
 
 
 PeopleAccessory.prototype.getState = function(target, callback) {
-  callback(null, this.targetIsActive(target));
+  callback(null, this.getStateFromCache(target));
 }
 
 
 PeopleAccessory.prototype.getAnyoneState = function(callback) {
+  var isAnyoneActive = this.getAnyoneStateFromCache();
+
+  callback(null, isAnyoneActive);
+}
+
+PeopleAccessory.prototype.getAnyoneStateFromCache = function() {
   for (var i = 0; i < this.people.length; i++) {
     var personConfig = this.people[i];
     var target = this.getTarget(personConfig);
 
-    var isActive = this.targetIsActive(target);
+    var isActive = this.getStateFromCache(target);
 
     if (isActive) {
-      callback(null, true);
-      return;
+      return true;
     }
   }
 
-  callback(null, false);
+  return false;
 }
 
 
@@ -120,9 +124,17 @@ PeopleAccessory.prototype.pingHosts = function() {
       var oldState = this.getStateFromCache(target);
       var newState = this.targetIsActive(target);
       if (oldState != newState) {
+        //Update our internal cache of states
         this.updateStateCache(target, newState);
+
+        //Trigger an update to the Homekit service associated with the target
         var service = this.getServiceForTarget(target);
         service.getCharacteristic(Characteristic.OccupancyDetected).setValue(newState);
+
+        //Trigger an update to the Homekit service associated with 'ANYONE'
+        var anyoneService = this.getServiceForTarget('ANYONE');
+        var anyoneState = this.getAnyoneStateFromCache();
+        anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
       }
     }.bind(this));
   }.bind(this));
@@ -149,7 +161,7 @@ PeopleAccessory.prototype.targetIsActive = function(target) {
   if (lastSeenUnix) {
     var lastSeenMoment = moment(lastSeenUnix);
     var activeThreshold = moment().subtract(this.threshold, 'm');
-    //var activeThreshold = moment().subtract(10, 's');
+    //var activeThreshold = moment().subtract(2, 's');
 
     var isActive = lastSeenMoment.isAfter(activeThreshold);
 
