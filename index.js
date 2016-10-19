@@ -50,6 +50,17 @@ function PeopleAccessory(log, config) {
 
   this.populateStateCache();
 
+  //Setup an NO ONE OccupancySensor
+  var service = new Service.OccupancySensor('NO ONE', 'NO ONE');
+  service.target = 'NO ONE';
+  service
+    .getCharacteristic(Characteristic.OccupancyDetected)
+    .on('get', this.getNoOneState.bind(this));
+
+  this.services.push(service);
+
+  this.populateStateCache();
+
   //Start pinging the hosts
   this.pingHosts();
 }
@@ -110,6 +121,27 @@ PeopleAccessory.prototype.getAnyoneStateFromCache = function() {
   return false;
 }
 
+PeopleAccessory.prototype.getNoOneState = function(callback) {
+  var isAnyoneActive = !this.getAnyoneStateFromCache();
+
+  callback(null, isAnyoneActive);
+}
+
+PeopleAccessory.prototype.getNoOneStateFromCache = function() {
+  for (var i = 0; i < this.people.length; i++) {
+    var personConfig = this.people[i];
+    var target = this.getTarget(personConfig);
+
+    var isActive = this.getStateFromCache(target);
+
+    if (isActive) {
+      return false;
+    }
+  }
+
+  return false;
+}
+
 
 PeopleAccessory.prototype.pingHosts = function() {
   this.people.forEach(function(personConfig) {
@@ -135,6 +167,11 @@ PeopleAccessory.prototype.pingHosts = function() {
         var anyoneService = this.getServiceForTarget('ANYONE');
         var anyoneState = this.getAnyoneStateFromCache();
         anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
+
+        //Trigger an update to the Homekit service associated with 'NO ONE'
+        var noOneService = this.getServiceForTarget('NO ONE');
+        var noOneState = this.getNoOneStateFromCache();
+        noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
       }
     }.bind(this));
   }.bind(this));
