@@ -75,6 +75,12 @@ function PeopleAccessory(log, config) {
   //Start pinging the hosts
   this.pingHosts();
 
+  //
+  // HTTP webserver code influenced by benzman81's great
+  // homebridge-http-webhooks homebridge plugin.
+  // https://github.com/benzman81/homebridge-http-webhooks
+  //
+
   // Start the HTTP webserver
   http.createServer((function(request, response) {
     var theUrl = request.url;
