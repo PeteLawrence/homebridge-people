@@ -47,9 +47,9 @@ function PeopleAccessory(log, config) {
   }.bind(this));
 
   if(this.anyone_sensor) {
-    //Setup an ANYONE OccupancySensor
-    var service = new Service.OccupancySensor('ANYONE', 'ANYONE');
-    service.target = 'ANYONE';
+    //Setup an Anyone OccupancySensor
+    var service = new Service.OccupancySensor('Anyone', 'Anyone');
+    service.target = 'Anyone';
     service
       .getCharacteristic(Characteristic.OccupancyDetected)
       .on('get', this.getAnyoneState.bind(this));
@@ -60,9 +60,9 @@ function PeopleAccessory(log, config) {
   }
 
   if(this.noone_sensor) {
-    //Setup an NO ONE OccupancySensor
-    var service = new Service.OccupancySensor('NO ONE', 'NO ONE');
-    service.target = 'NO ONE';
+    //Setup an No One OccupancySensor
+    var service = new Service.OccupancySensor('No One', 'No One');
+    service.target = 'No One';
     service
       .getCharacteristic(Characteristic.OccupancyDetected)
       .on('get', this.getNoOneState.bind(this));
@@ -129,13 +129,13 @@ function PeopleAccessory(log, config) {
               var service = this.getServiceForTarget(target);
               service.getCharacteristic(Characteristic.OccupancyDetected).setValue(newState);
 
-              //Trigger an update to the Homekit service associated with 'ANYONE'
-              var anyoneService = this.getServiceForTarget('ANYONE');
+              //Trigger an update to the Homekit service associated with 'Anyone'
+              var anyoneService = this.getServiceForTarget('Anyone');
               var anyoneState = this.getAnyoneStateFromCache();
               anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
 
-              //Trigger an update to the Homekit service associated with 'NO ONE'
-              var noOneService = this.getServiceForTarget('NO ONE');
+              //Trigger an update to the Homekit service associated with 'No One'
+              var noOneService = this.getServiceForTarget('No One');
               var noOneState = this.getNoOneStateFromCache();
               noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
             }
@@ -247,13 +247,13 @@ PeopleAccessory.prototype.pingHosts = function() {
         var service = this.getServiceForTarget(target);
         service.getCharacteristic(Characteristic.OccupancyDetected).setValue(newState);
 
-        //Trigger an update to the Homekit service associated with 'ANYONE'
-        var anyoneService = this.getServiceForTarget('ANYONE');
+        //Trigger an update to the Homekit service associated with 'Anyone'
+        var anyoneService = this.getServiceForTarget('Anyone');
         var anyoneState = this.getAnyoneStateFromCache();
         anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
 
-        //Trigger an update to the Homekit service associated with 'NO ONE'
-        var noOneService = this.getServiceForTarget('NO ONE');
+        //Trigger an update to the Homekit service associated with 'No One'
+        var noOneService = this.getServiceForTarget('No One');
         var noOneState = this.getNoOneStateFromCache();
         noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
       }
