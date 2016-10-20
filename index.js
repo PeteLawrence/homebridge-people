@@ -1,5 +1,9 @@
 var ping = require('ping');
 var moment = require('moment');
+var request = require("request");
+var http = require('http');
+var url = require('url');
+var DEFAULT_REQUEST_TIMEOUT = 10000;
 
 var Service, Characteristic, HomebridgeAPI;
 
@@ -18,6 +22,7 @@ function PeopleAccessory(log, config) {
   this.name = config['name'];
   this.people = config['people'];
   this.threshold = config['threshold'];
+  this.webhookPort = config["webhook_port"] || 51828;
   this.services = [];
   this.storage = require('node-persist');
   this.stateCache = [];
@@ -63,6 +68,79 @@ function PeopleAccessory(log, config) {
 
   //Start pinging the hosts
   this.pingHosts();
+
+  // Start the HTTP webserver
+  http.createServer((function(request, response) {
+    var theUrl = request.url;
+    var theUrlParts = url.parse(theUrl, true);
+    var theUrlParams = theUrlParts.query;
+    var body = [];
+    request.on('error', (function(err) {
+      this.log("WebHook error: %s.", err);
+    }).bind(this)).on('data', function(chunk) {
+      body.push(chunk);
+    }).on('end', (function() {
+      body = Buffer.concat(body).toString();
+
+      response.on('error', function(err) {
+        this.log("WebHook error: %s.", err);
+      });
+
+      response.statusCode = 200;
+      response.setHeader('Content-Type', 'application/json');
+
+      if(!theUrlParams.sensor || !theUrlParams.state) {
+        response.statusCode = 404;
+        response.setHeader("Content-Type", "text/plain");
+        var errorText = "WebHook error: No sensor or state specified in request.";
+        this.log(errorText);
+        response.write(errorText);
+        response.end();
+      }
+      else {
+        var sensor = theUrlParams.sensor;
+        var state = (theUrlParams.state == "true");
+        var responseBody = {
+          success: true
+        };
+
+        for(var i = 0; i < this.people.length; i++){
+          var person = this.people[i];
+          var target = person.target
+          if(person.name.toLowerCase() === sensor) {
+            if (state) {
+              this.storage.setItem('person_' + target, Date.now());
+            } else {
+            }
+
+            var oldState = this.getStateFromCache(target);
+            var newState = state;
+            if (oldState != newState) {
+              //Update our internal cache of states
+              this.updateStateCache(target, newState);
+
+              //Trigger an update to the Homekit service associated with the target
+              var service = this.getServiceForTarget(target);
+              service.getCharacteristic(Characteristic.OccupancyDetected).setValue(newState);
+
+              //Trigger an update to the Homekit service associated with 'ANYONE'
+              var anyoneService = this.getServiceForTarget('ANYONE');
+              var anyoneState = this.getAnyoneStateFromCache();
+              anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
+
+              //Trigger an update to the Homekit service associated with 'NO ONE'
+              var noOneService = this.getServiceForTarget('NO ONE');
+              var noOneState = this.getNoOneStateFromCache();
+              noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
+            }
+          }
+        }
+        response.write(JSON.stringify(responseBody));
+        response.end();
+      }
+    }).bind(this));
+  }).bind(this)).listen(this.webhookPort);
+  this.log("WebHook: Started server on port '%s'.", this.webhookPort);
 }
 
 PeopleAccessory.prototype.populateStateCache = function() {
