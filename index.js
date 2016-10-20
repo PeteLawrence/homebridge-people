@@ -21,8 +21,8 @@ function PeopleAccessory(log, config) {
   this.log = log;
   this.name = config['name'];
   this.people = config['people'];
-  this.anyone_sensor = config['anyone_sensor'];
-  this.noone_sensor = config['noone_sensor'];
+  this.anyone_sensor = config['anyone_sensor'] || false;
+  this.noone_sensor = config['noone_sensor'] || false;
   this.threshold = config['threshold'];
   this.webhook_port = config["webhook_port"] || 51828;
   this.services = [];
