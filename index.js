@@ -24,7 +24,7 @@ function PeopleAccessory(log, config) {
   this.anyone_sensor = config['anyone_sensor'];
   this.noone_sensor = config['noone_sensor'];
   this.threshold = config['threshold'];
-  this.webhookPort = config["webhook_port"] || 51828;
+  this.webhook_port = config["webhook_port"] || 51828;
   this.services = [];
   this.storage = require('node-persist');
   this.stateCache = [];
@@ -145,8 +145,8 @@ function PeopleAccessory(log, config) {
         response.end();
       }
     }).bind(this));
-  }).bind(this)).listen(this.webhookPort);
-  this.log("WebHook: Started server on port '%s'.", this.webhookPort);
+  }).bind(this)).listen(this.webhook_port);
+  this.log("WebHook: Started server on port '%s'.", this.webhook_port);
 }
 
 PeopleAccessory.prototype.populateStateCache = function() {
