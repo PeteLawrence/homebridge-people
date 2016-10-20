@@ -21,6 +21,8 @@ function PeopleAccessory(log, config) {
   this.log = log;
   this.name = config['name'];
   this.people = config['people'];
+  this.anyone_sensor = config['anyone_sensor'];
+  this.noone_sensor = config['noone_sensor'];
   this.threshold = config['threshold'];
   this.webhookPort = config["webhook_port"] || 51828;
   this.services = [];
@@ -44,27 +46,31 @@ function PeopleAccessory(log, config) {
     this.services.push(service);
   }.bind(this));
 
-  //Setup an ANYONE OccupancySensor
-  var service = new Service.OccupancySensor('ANYONE', 'ANYONE');
-  service.target = 'ANYONE';
-  service
-    .getCharacteristic(Characteristic.OccupancyDetected)
-    .on('get', this.getAnyoneState.bind(this));
+  if(this.anyone_sensor) {
+    //Setup an ANYONE OccupancySensor
+    var service = new Service.OccupancySensor('ANYONE', 'ANYONE');
+    service.target = 'ANYONE';
+    service
+      .getCharacteristic(Characteristic.OccupancyDetected)
+      .on('get', this.getAnyoneState.bind(this));
 
-  this.services.push(service);
+    this.services.push(service);
 
-  this.populateStateCache();
+    this.populateStateCache();
+  }
 
-  //Setup an NO ONE OccupancySensor
-  var service = new Service.OccupancySensor('NO ONE', 'NO ONE');
-  service.target = 'NO ONE';
-  service
-    .getCharacteristic(Characteristic.OccupancyDetected)
-    .on('get', this.getNoOneState.bind(this));
+  if(this.noone_sensor) {
+    //Setup an NO ONE OccupancySensor
+    var service = new Service.OccupancySensor('NO ONE', 'NO ONE');
+    service.target = 'NO ONE';
+    service
+      .getCharacteristic(Characteristic.OccupancyDetected)
+      .on('get', this.getNoOneState.bind(this));
 
-  this.services.push(service);
+    this.services.push(service);
 
-  this.populateStateCache();
+    this.populateStateCache();
+  }
 
   //Start pinging the hosts
   this.pingHosts();
