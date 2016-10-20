@@ -104,7 +104,7 @@ function PeopleAccessory(log, config) {
         response.end();
       }
       else {
-        var sensor = theUrlParams.sensor;
+        var sensor = theUrlParams.sensor.toLowerCase();
         var state = (theUrlParams.state == "true");
         var responseBody = {
           success: true
