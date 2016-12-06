@@ -112,6 +112,7 @@ function PeopleAccessory(log, config) {
       else {
         var sensor = theUrlParams.sensor.toLowerCase();
         var state = (theUrlParams.state == "true");
+        this.log('Received hook for ' + sensor + ' -> ' + state);
         var responseBody = {
           success: true
         };
