@@ -21,7 +21,7 @@ function PeopleAccessory(log, config) {
   this.log = log;
   this.name = config['name'];
   this.people = config['people'];
-  this.anyone_sensor = config['anyone_sensor'] || false;
+  this.anyone_sensor = config['anyone_sensor'] || true;
   this.noone_sensor = config['noone_sensor'] || false;
   this.threshold = config['threshold'];
   this.webhook_port = config["webhook_port"] || 51828;
@@ -137,13 +137,19 @@ function PeopleAccessory(log, config) {
 
               //Trigger an update to the Homekit service associated with 'Anyone'
               var anyoneService = this.getServiceForTarget('Anyone');
+              if (anyoneService) {
+                var anyoneState = this.getAnyoneStateFromCache();
+                anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
+              }
               var anyoneState = this.getAnyoneStateFromCache();
               anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
 
               //Trigger an update to the Homekit service associated with 'No One'
               var noOneService = this.getServiceForTarget('No One');
-              var noOneState = this.getNoOneStateFromCache();
-              noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
+              if (noOneService) {
+                var noOneState = this.getNoOneStateFromCache();
+                noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
+              }
             }
           }
         }
@@ -255,13 +261,17 @@ PeopleAccessory.prototype.pingHosts = function() {
 
         //Trigger an update to the Homekit service associated with 'Anyone'
         var anyoneService = this.getServiceForTarget('Anyone');
-        var anyoneState = this.getAnyoneStateFromCache();
-        anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
+        if (anyoneService) {
+          var anyoneState = this.getAnyoneStateFromCache();
+          anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
+        }
 
         //Trigger an update to the Homekit service associated with 'No One'
         var noOneService = this.getServiceForTarget('No One');
-        var noOneState = this.getNoOneStateFromCache();
-        noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
+        if (nooneService) {
+          var noOneState = this.getNoOneStateFromCache();
+          noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
+        }
       }
     }.bind(this));
   }.bind(this));
