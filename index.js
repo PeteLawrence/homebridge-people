@@ -21,10 +21,10 @@ function PeopleAccessory(log, config) {
   this.log = log;
   this.name = config['name'];
   this.people = config['people'];
-  this.anyone_sensor = config['anyone_sensor'] || true;
-  this.noone_sensor = config['noone_sensor'] || false;
+  this.anyoneSensor = config['anyoneSensor'] || true;
+  this.nooneSensor = config['nooneSensor'] || false;
   this.threshold = config['threshold'];
-  this.webhook_port = config["webhook_port"] || 51828;
+  this.webhookPort = config["webhookPort"] || 51828;
   this.services = [];
   this.storage = require('node-persist');
   this.stateCache = [];
@@ -46,7 +46,7 @@ function PeopleAccessory(log, config) {
     this.services.push(service);
   }.bind(this));
 
-  if(this.anyone_sensor) {
+  if(this.anyoneSensor) {
     //Setup an Anyone OccupancySensor
     var service = new Service.OccupancySensor('Anyone', 'Anyone');
     service.target = 'Anyone';
@@ -59,7 +59,7 @@ function PeopleAccessory(log, config) {
     this.populateStateCache();
   }
 
-  if(this.noone_sensor) {
+  if(this.nooneSensor) {
     //Setup an No One OccupancySensor
     var service = new Service.OccupancySensor('No One', 'No One');
     service.target = 'No One';
@@ -157,8 +157,8 @@ function PeopleAccessory(log, config) {
         response.end();
       }
     }).bind(this));
-  }).bind(this)).listen(this.webhook_port);
-  this.log("WebHook: Started server on port '%s'.", this.webhook_port);
+  }).bind(this)).listen(this.webhookPort);
+  this.log("WebHook: Started server on port '%s'.", this.webhookPort);
 }
 
 PeopleAccessory.prototype.populateStateCache = function() {
@@ -268,7 +268,7 @@ PeopleAccessory.prototype.pingHosts = function() {
 
         //Trigger an update to the Homekit service associated with 'No One'
         var noOneService = this.getServiceForTarget('No One');
-        if (nooneService) {
+        if (noOneService) {
           var noOneState = this.getNoOneStateFromCache();
           noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
         }
