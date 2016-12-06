@@ -40,7 +40,7 @@ Some HomeKit automations need to happen when "anyone" is home or when "no one" i
 
 For example, you might want to run your "Arrive Home" scene when _Anyone_ gets home. Or run "Leave Home" when _No One_ is home.
 
-These sensors can be enabled by adding `"anyone_sensor" : true` and `"noone_sensor" : true` to your `config.yml` file.
+These sensors can be enabled by adding `"anyone_sensor" : true` and `"noone_sensor" : true` to your homebridge `config.json` file.
 
 # Accuracy
 This plugin requires that the devices being monitored are connected to the network. iPhones (and I expect others) deliberately disconnect from the network once the screen is turned off to save power, meaning just because the device isn't connected, it doesn't mean that the devices owner isn't at home. Fortunately, iPhones (and I expect others) periodically reconnect to the network to check for updates, emails, etc. This plugin works by keeping track of the last time a device was seen, and comparing that to a threshold value (in minutes).
@@ -52,7 +52,9 @@ Additionally, if you're using a location-aware mobile app to range for iBeacons 
 # Pairing with a location-aware mobile app
 Apps like [Locative](https://my.locative.io) range for iBeacons and geofences by using core location APIs available on your smartphone. With bluetooth and location services turned on, these apps can provide an instantaneous update when you enter and exit a desired region.
 
-To use this plugin with one of these apps, configure your region and set the HTTP push to `http://youripaddress:51828/?[name]&state=true` for arrival, and `http://youripaddress:51828/?[name]&state=false` for departure, where `[name]` is the name of the person the device belongs to as specified in your config under `people`. *Note:* you may need to enable port forwarding on your router to accomplish this.
+To use this plugin with one of these apps, configure your region and set the HTTP push to `http://youripaddress:51828/?sensor=[name]&state=true` for arrival, and `http://youripaddress:51828/?sensor=[name]&state=false` for departure, where `[name]` is the name of the person the device belongs to as specified in your config under `people`. *Note:* you may need to enable port forwarding on your router to accomplish this.
+
+By default homebridge-people listens on port 51828 for updates.  This can be changed by setting `webhook_port` in your homebridge `config.json`.
 
 # Notes
 ## Running on a raspberry pi as non 'pi' user
