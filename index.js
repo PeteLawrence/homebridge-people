@@ -127,6 +127,7 @@ function PeopleAccessory(log, config) {
 }
 
 PeopleAccessory.prototype.clearWebhookQueueForTarget = function(target) {
+    this.log('clearWebhookQueueForTarget: Queue count before: ' + this.webhookQueue.length);
     for (var i = 0; i < this.webhookQueue.length; i++) {
         var webhookQueueEntry = this.webhookQueue[i];
         if(webhookQueueEntry.target == target) {
@@ -135,9 +136,11 @@ PeopleAccessory.prototype.clearWebhookQueueForTarget = function(target) {
             break;
         }
     }
+    this.log('clearWebhookQueueForTarget: Queue count after: ' + this.webhookQueue.length);
 }
 
 PeopleAccessory.prototype.runWebhookFromQueueForTarget = function(target) {
+    this.log('runWebhookFromQueueForTarget: Queue count before: ' + this.webhookQueue.length);
     for (var i = 0; i < this.webhookQueue.length; i++) {
         var webhookQueueEntry = this.webhookQueue[i];
         if(webhookQueueEntry.target == target) {
@@ -148,6 +151,7 @@ PeopleAccessory.prototype.runWebhookFromQueueForTarget = function(target) {
             break;
         }
     }
+    this.log('runWebhookFromQueueForTarget: Queue count after: ' + this.webhookQueue.length);
 }
 
 PeopleAccessory.prototype.createService = function(name, target, stateFunction) {
