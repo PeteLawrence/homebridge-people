@@ -23,15 +23,17 @@ function PeopleAccessory(log, config) {
   this.people = config['people'];
   this.anyoneSensor = config['anyoneSensor'] || true;
   this.nooneSensor = config['nooneSensor'] || false;
-  this.threshold = config['threshold'];
+  this.threshold = config['threshold'] || 15;
   this.webhookPort = config["webhookPort"] || 51828;
+  this.cacheDirectory = config["cacheDirectory"] || HomebridgeAPI.user.persistPath();
+  this.pingInterval = config["pingInterval"] || 1000;
   this.services = [];
   this.storage = require('node-persist');
   this.stateCache = [];
 
   //Init storage
   this.storage.initSync({
-    dir: HomebridgeAPI.user.persistPath()
+    dir: this.cacheDirectory
   });
 
   //Setup an OccupancySensor for each person defined in the config file
@@ -57,7 +59,9 @@ function PeopleAccessory(log, config) {
   this.populateStateCache();
 
   //Start pinging the hosts
-  this.pingHosts();
+  if(this.pingInterval > -1) {
+    this.pingHosts();
+  }
 
   //
   // HTTP webserver code influenced by benzman81's great
@@ -182,7 +186,7 @@ PeopleAccessory.prototype.pingHosts = function() {
         }.bind(this));
     }
   }.bind(this));
-  setTimeout(PeopleAccessory.prototype.pingHosts.bind(this), 1000);
+  setTimeout(PeopleAccessory.prototype.pingHosts.bind(this), this.pingInterval);
 }
 
 PeopleAccessory.prototype.setNewState = function(target, newState) {
