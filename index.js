@@ -39,40 +39,20 @@ function PeopleAccessory(log, config) {
       personConfig.target = personConfig.ip;
     }
     var target = personConfig.target;
-    var service = new Service.OccupancySensor(personConfig.name, personConfig.name);
-    service.target = target;
-    service
-      .getCharacteristic(Characteristic.OccupancyDetected)
-      .on('get', this.getState.bind(this, target));
-
-    this.services.push(service);
+    this.createService(personConfig.name, target, this.getState.bind(this, target)).bind(this);
   }.bind(this));
 
   if(this.anyoneSensor) {
     //Setup an Anyone OccupancySensor
-    var service = new Service.OccupancySensor('Anyone', 'Anyone');
-    service.target = 'Anyone';
-    service
-      .getCharacteristic(Characteristic.OccupancyDetected)
-      .on('get', this.getAnyoneState.bind(this));
-
-    this.services.push(service);
-
-    this.populateStateCache();
+    this.createService('Anyone', 'Anyone', this.getAnyoneState.bind(this)).bind(this);
   }
 
   if(this.nooneSensor) {
     //Setup an No One OccupancySensor
-    var service = new Service.OccupancySensor('No One', 'No One');
-    service.target = 'No One';
-    service
-      .getCharacteristic(Characteristic.OccupancyDetected)
-      .on('get', this.getNoOneState.bind(this));
-
-    this.services.push(service);
-
-    this.populateStateCache();
+    this.createService('No One', 'No One', this.getNoOneState.bind(this)).bind(this);
   }
+  
+  this.populateStateCache();
 
   //Start pinging the hosts
   this.pingHosts();
@@ -162,6 +142,15 @@ function PeopleAccessory(log, config) {
     }).bind(this));
   }).bind(this)).listen(this.webhookPort);
   this.log("WebHook: Started server on port '%s'.", this.webhookPort);
+}
+
+PeopleAccessory.prototype.createService = function(name, target, stateFunction) {
+    var service = new Service.OccupancySensor(name, name);
+    service.target = target;
+    service
+      .getCharacteristic(Characteristic.OccupancyDetected)
+      .on('get', stateFunction);
+    this.services.push(service);
 }
 
 PeopleAccessory.prototype.populateStateCache = function() {
@@ -285,7 +274,6 @@ PeopleAccessory.prototype.targetIsActive = function(target) {
   if (lastSeenUnix) {
     var lastSeenMoment = moment(lastSeenUnix);
     var activeThreshold = moment().subtract(this.threshold, 'm');
-    //var activeThreshold = moment().subtract(2, 's');
 
     var isActive = lastSeenMoment.isAfter(activeThreshold);
 
