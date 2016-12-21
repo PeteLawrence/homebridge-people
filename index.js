@@ -158,7 +158,7 @@ PeopleAccessory.prototype.populateStateCache = function() {
     var target = personConfig.target;
     var isActive = this.targetIsActive(target);
 
-    this.stateCache[target] = isActive;
+    this.updateStateCache(target, isActive);
   }.bind(this));
 }
 
@@ -166,24 +166,12 @@ PeopleAccessory.prototype.updateStateCache = function(target, state) {
   this.stateCache[target] = state;
 }
 
-PeopleAccessory.prototype.getStateFromCache = function(target) {
-  return this.stateCache[target];
-}
-
-PeopleAccessory.prototype.getServices = function() {
-  return this.services;
-}
-
-PeopleAccessory.prototype.getServiceForTarget = function(target) {
-  var service = this.services.find(function(target, service) {
-    return (service.target == target);
-  }.bind(this, target));
-
-  return service;
-}
-
 PeopleAccessory.prototype.getState = function(target, callback) {
   callback(null, this.getStateFromCache(target));
+}
+
+PeopleAccessory.prototype.getStateFromCache = function(target) {
+  return this.stateCache[target];
 }
 
 PeopleAccessory.prototype.getAnyoneState = function(callback) {
@@ -208,9 +196,8 @@ PeopleAccessory.prototype.getAnyoneStateFromCache = function() {
 }
 
 PeopleAccessory.prototype.getNoOneState = function(callback) {
-  var isAnyoneActive = !this.getAnyoneStateFromCache();
-
-  callback(null, isAnyoneActive);
+  var isAnyoneActive = this.getAnyoneStateFromCache();
+  callback(null, !isAnyoneActive);
 }
 
 PeopleAccessory.prototype.getNoOneStateFromCache = function() {
@@ -283,4 +270,16 @@ PeopleAccessory.prototype.targetIsActive = function(target) {
   }
 
   return false;
+}
+
+PeopleAccessory.prototype.getServices = function() {
+  return this.services;
+}
+
+PeopleAccessory.prototype.getServiceForTarget = function(target) {
+  var service = this.services.find(function(target, service) {
+    return (service.target == target);
+  }.bind(this, target));
+
+  return service;
 }
