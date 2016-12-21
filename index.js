@@ -95,8 +95,8 @@ function PeopleAccessory(log, config) {
       }
       else {
         var sensor = theUrlParams.sensor.toLowerCase();
-        var state = (theUrlParams.state == "true");
-        this.log('Received hook for ' + sensor + ' -> ' + state);
+        var newState = (theUrlParams.state == "true");
+        this.log('Received hook for ' + sensor + ' -> ' + newState);
         var responseBody = {
           success: true
         };
@@ -104,11 +104,9 @@ function PeopleAccessory(log, config) {
           var person = this.people[i];
           var target = person.target
           if(person.name.toLowerCase() === sensor) {
-            if (state) {
-              this.storage.setItem('person_' + target, Date.now());
-            }
-            var newState = state;
+            this.storage.setItem('webhook_' + target, Date.now());
             this.setNewState(target, newState);
+            break;
           }
         }
         response.write(JSON.stringify(responseBody));
@@ -173,14 +171,16 @@ PeopleAccessory.prototype.getNoOneState = function(callback) {
 PeopleAccessory.prototype.pingHosts = function() {
   this.people.forEach(function(personConfig) {
     var target = personConfig.target;
-    ping.sys.probe(target, function(state){
-      //If target is alive update the last seen time
-      if (state) {
-        this.storage.setItem('person_' + target, Date.now());
-      }
-      var newState = this.targetIsActive(target);
-      this.setNewState(target, newState);
-    }.bind(this));
+    if(this.webhookIsOutdated(target)) {
+        ping.sys.probe(target, function(state){
+          //If target is alive update the last seen time
+          if (state) {
+            this.storage.setItem('ping_' + target, Date.now());
+          }
+          var newState = this.targetIsActive(target);
+          this.setNewState(target, newState);
+        }.bind(this));
+    }
   }.bind(this));
   setTimeout(PeopleAccessory.prototype.pingHosts.bind(this), 1000);
 }
@@ -212,16 +212,23 @@ PeopleAccessory.prototype.setNewState = function(target, newState) {
 }
 
 PeopleAccessory.prototype.targetIsActive = function(target) {
-  var lastSeenUnix = this.storage.getItem('person_' + target);
+  var lastSeenUnix = this.storage.getItem('ping_' + target);
   if (lastSeenUnix) {
     var lastSeenMoment = moment(lastSeenUnix);
     var activeThreshold = moment().subtract(this.threshold, 'm');
-    var isActive = lastSeenMoment.isAfter(activeThreshold);
-    if (isActive) {
-      return true;
-    }
+    return lastSeenMoment.isAfter(activeThreshold);
   }
   return false;
+}
+
+PeopleAccessory.prototype.webhookIsOutdated = function(target) {
+  var lastWebhookUnix = this.storage.getItem('webhook_' + target);
+  if (lastWebhookUnix) {
+    var lastWebhookMoment = moment(lastWebhookUnix);
+    var activeThreshold = moment().subtract(this.threshold, 'm');
+    return lastWebhookMoment.isBefore(activeThreshold);
+  }
+  return true;
 }
 
 PeopleAccessory.prototype.getServices = function() {
