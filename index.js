@@ -45,17 +45,17 @@ function PeopleAccessory(log, config) {
       personConfig.target = personConfig.ip;
     }
     var target = personConfig.target;
-    this.createService(personConfig.name, target, this.getState.bind(this, target)).bind(this);
+    this.createService(personConfig.name, target, this.getState.bind(this, target));
   }.bind(this));
 
   if(this.anyoneSensor) {
     //Setup an Anyone OccupancySensor
-    this.createService(SENSOR_ANYONE, SENSOR_ANYONE, this.getAnyoneState.bind(this)).bind(this);
+    this.createService(SENSOR_ANYONE, SENSOR_ANYONE, this.getAnyoneState.bind(this));
   }
 
   if(this.nooneSensor) {
     //Setup an No One OccupancySensor
-    this.createService(SENSOR_NOONE, SENSOR_NOONE, this.getNoOneState.bind(this)).bind(this);
+    this.createService(SENSOR_NOONE, SENSOR_NOONE, this.getNoOneState.bind(this));
   }
   
   this.populateStateCache();
