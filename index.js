@@ -142,7 +142,7 @@ PeopleAccessory.prototype.runWebhookFromQueueForTarget = function(target) {
         if(webhookQueueEntry.target == target) {
             this.webhookQueue.splice(i, i);
             this.storage.setItem('webhook_' + target, Date.now());
-            this.setNewState(target, newState);
+            this.setNewState(target, webhookQueueEntry.newState);
             break;
         }
     }
