@@ -7,7 +7,6 @@ var DEFAULT_REQUEST_TIMEOUT = 10000;
 
 var Service, Characteristic, HomebridgeAPI;
 
-
 module.exports = function(homebridge) {
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
@@ -15,7 +14,6 @@ module.exports = function(homebridge) {
 
   homebridge.registerAccessory("homebridge-people", "people", PeopleAccessory);
 }
-
 
 function PeopleAccessory(log, config) {
   this.log = log;
@@ -35,8 +33,12 @@ function PeopleAccessory(log, config) {
   });
 
   //Setup an OccupancySensor for each person defined in the config file
-  config['people'].forEach(function(personConfig) {
-    var target = this.getTarget(personConfig);
+  this.people.forEach(function(personConfig) {
+    //Fix old config entries that use a key of 'ip' instead of 'target'
+    if (personConfig.ip && !personConfig.target) {
+      personConfig.target = personConfig.ip;
+    }
+    var target = personConfig.target;
     var service = new Service.OccupancySensor(personConfig.name, personConfig.name);
     service.target = target;
     service
@@ -164,7 +166,7 @@ function PeopleAccessory(log, config) {
 
 PeopleAccessory.prototype.populateStateCache = function() {
   this.people.forEach(function(personConfig) {
-    var target = this.getTarget(personConfig);
+    var target = personConfig.target;
     var isActive = this.targetIsActive(target);
 
     this.stateCache[target] = isActive;
@@ -191,11 +193,9 @@ PeopleAccessory.prototype.getServiceForTarget = function(target) {
   return service;
 }
 
-
 PeopleAccessory.prototype.getState = function(target, callback) {
   callback(null, this.getStateFromCache(target));
 }
-
 
 PeopleAccessory.prototype.getAnyoneState = function(callback) {
   var isAnyoneActive = this.getAnyoneStateFromCache();
@@ -206,7 +206,7 @@ PeopleAccessory.prototype.getAnyoneState = function(callback) {
 PeopleAccessory.prototype.getAnyoneStateFromCache = function() {
   for (var i = 0; i < this.people.length; i++) {
     var personConfig = this.people[i];
-    var target = this.getTarget(personConfig);
+    var target = personConfig.target;
 
     var isActive = this.getStateFromCache(target);
 
@@ -227,7 +227,7 @@ PeopleAccessory.prototype.getNoOneState = function(callback) {
 PeopleAccessory.prototype.getNoOneStateFromCache = function() {
   for (var i = 0; i < this.people.length; i++) {
     var personConfig = this.people[i];
-    var target = this.getTarget(personConfig);
+    var target = personConfig.target;
 
     var isActive = this.getStateFromCache(target);
 
@@ -239,11 +239,10 @@ PeopleAccessory.prototype.getNoOneStateFromCache = function() {
   return false;
 }
 
-
 PeopleAccessory.prototype.pingHosts = function() {
   this.people.forEach(function(personConfig) {
 
-    var target = this.getTarget(personConfig);
+    var target = personConfig.target;
     ping.sys.probe(target, function(state){
       //If target is alive update the last seen time
       if (state) {
@@ -279,19 +278,6 @@ PeopleAccessory.prototype.pingHosts = function() {
 
   setTimeout(PeopleAccessory.prototype.pingHosts.bind(this), 1000);
 }
-
-
-/**
- * Handle old config entries that use a key of 'ip' instead of 'target'
- */
-PeopleAccessory.prototype.getTarget = function(personConfig) {
-  if (personConfig.ip) {
-    return personConfig.ip;
-  }
-
-  return personConfig.target;
-}
-
 
 PeopleAccessory.prototype.targetIsActive = function(target) {
   var lastSeenUnix = this.storage.getItem('person_' + target);
