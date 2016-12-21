@@ -201,17 +201,6 @@ PeopleAccessory.prototype.getNoOneState = function(callback) {
 }
 
 PeopleAccessory.prototype.getNoOneStateFromCache = function() {
-  for (var i = 0; i < this.people.length; i++) {
-    var personConfig = this.people[i];
-    var target = personConfig.target;
-
-    var isActive = this.getStateFromCache(target);
-
-    if (isActive) {
-      return false;
-    }
-  }
-
   return false;
 }
 
