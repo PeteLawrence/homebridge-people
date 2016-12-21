@@ -27,9 +27,11 @@ function PeopleAccessory(log, config) {
   this.webhookPort = config["webhookPort"] || 51828;
   this.cacheDirectory = config["cacheDirectory"] || HomebridgeAPI.user.persistPath();
   this.pingInterval = config["pingInterval"] || 1000;
+  this.ignoreReEnterExitSeconds = config["ignoreReEnterExitSeconds"] || 0;
   this.services = [];
   this.storage = require('node-persist');
   this.stateCache = [];
+  this.webhookQueue = [];
 
   //Init storage
   this.storage.initSync({
@@ -108,8 +110,11 @@ function PeopleAccessory(log, config) {
           var person = this.people[i];
           var target = person.target
           if(person.name.toLowerCase() === sensor) {
-            this.storage.setItem('webhook_' + target, Date.now());
-            this.setNewState(target, newState);
+            this.clearWebhookQueueForTarget(target);
+            this.webhookQueue.push({"target": target, "newState": newState});
+            setTimeout((function(){ 
+                this.runWebhookFromQueueForTarget(target);
+            }).bind(this),  this.ignoreReEnterExitSeconds * 1000);
             break;
           }
         }
@@ -119,6 +124,28 @@ function PeopleAccessory(log, config) {
     }).bind(this));
   }).bind(this)).listen(this.webhookPort);
   this.log("WebHook: Started server on port '%s'.", this.webhookPort);
+}
+
+PeopleAccessory.prototype.clearWebhookQueueForTarget = function(target) {
+    for (var i = 0; i < this.webhookQueue.length; i++) {
+        var webhookQueueEntry = this.webhookQueue[i];
+        if(webhookQueueEntry.target == target) {
+            this.webhookQueue.splice(i, i);
+            break;
+        }
+    }
+}
+
+PeopleAccessory.prototype.runWebhookFromQueueForTarget = function(target) {
+    for (var i = 0; i < this.webhookQueue.length; i++) {
+        var webhookQueueEntry = this.webhookQueue[i];
+        if(webhookQueueEntry.target == target) {
+            this.webhookQueue.splice(i, i);
+            this.storage.setItem('webhook_' + target, Date.now());
+            this.setNewState(target, newState);
+            break;
+        }
+    }
 }
 
 PeopleAccessory.prototype.createService = function(name, target, stateFunction) {
