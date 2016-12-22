@@ -207,6 +207,7 @@ PeopleAccessory.prototype.pingHosts = function() {
   this.people.forEach(function(personConfig) {
     var target = personConfig.target;
     if(this.webhookIsOutdated(target)) {
+        this.log("Pinging %s.", target);
         ping.sys.probe(target, function(state){
           if(this.webhookIsOutdated(target)) {
               //If target is alive update the last seen time
