@@ -4,9 +4,10 @@ var request = require("request");
 var http = require('http');
 var url = require('url');
 var DEFAULT_REQUEST_TIMEOUT = 10000;
+var SENSOR_ANYONE = 'Anyone';
+var SENSOR_NOONE = 'No One';
 
 var Service, Characteristic, HomebridgeAPI;
-
 
 module.exports = function(homebridge) {
   Service = homebridge.hap.Service;
@@ -16,64 +17,53 @@ module.exports = function(homebridge) {
   homebridge.registerAccessory("homebridge-people", "people", PeopleAccessory);
 }
 
-
 function PeopleAccessory(log, config) {
   this.log = log;
   this.name = config['name'];
   this.people = config['people'];
   this.anyoneSensor = config['anyoneSensor'] || true;
   this.nooneSensor = config['nooneSensor'] || false;
-  this.threshold = config['threshold'];
+  this.threshold = config['threshold'] || 15;
   this.webhookPort = config["webhookPort"] || 51828;
+  this.cacheDirectory = config["cacheDirectory"] || HomebridgeAPI.user.persistPath();
+  this.pingInterval = config["pingInterval"] || 1000;
+  this.ignoreReEnterExitSeconds = config["ignoreReEnterExitSeconds"] || 0;
   this.services = [];
   this.storage = require('node-persist');
   this.stateCache = [];
+  this.webhookQueue = [];
 
   //Init storage
   this.storage.initSync({
-    dir: HomebridgeAPI.user.persistPath()
+    dir: this.cacheDirectory
   });
 
   //Setup an OccupancySensor for each person defined in the config file
-  config['people'].forEach(function(personConfig) {
-    var target = this.getTarget(personConfig);
-    var service = new Service.OccupancySensor(personConfig.name, personConfig.name);
-    service.target = target;
-    service
-      .getCharacteristic(Characteristic.OccupancyDetected)
-      .on('get', this.getState.bind(this, target));
-
-    this.services.push(service);
+  this.people.forEach(function(personConfig) {
+    //Fix old config entries that use a key of 'ip' instead of 'target'
+    if (personConfig.ip && !personConfig.target) {
+      personConfig.target = personConfig.ip;
+    }
+    var target = personConfig.target;
+    this.createService(personConfig.name, target, this.getState.bind(this, target));
   }.bind(this));
 
   if(this.anyoneSensor) {
     //Setup an Anyone OccupancySensor
-    var service = new Service.OccupancySensor('Anyone', 'Anyone');
-    service.target = 'Anyone';
-    service
-      .getCharacteristic(Characteristic.OccupancyDetected)
-      .on('get', this.getAnyoneState.bind(this));
-
-    this.services.push(service);
-
-    this.populateStateCache();
+    this.createService(SENSOR_ANYONE, SENSOR_ANYONE, this.getAnyoneState.bind(this));
   }
 
   if(this.nooneSensor) {
     //Setup an No One OccupancySensor
-    var service = new Service.OccupancySensor('No One', 'No One');
-    service.target = 'No One';
-    service
-      .getCharacteristic(Characteristic.OccupancyDetected)
-      .on('get', this.getNoOneState.bind(this));
-
-    this.services.push(service);
-
-    this.populateStateCache();
+    this.createService(SENSOR_NOONE, SENSOR_NOONE, this.getNoOneState.bind(this));
   }
+  
+  this.populateStateCache();
 
   //Start pinging the hosts
-  this.pingHosts();
+  if(this.pingInterval > -1) {
+    this.pingHosts();
+  }
 
   //
   // HTTP webserver code influenced by benzman81's great
@@ -111,47 +101,20 @@ function PeopleAccessory(log, config) {
       }
       else {
         var sensor = theUrlParams.sensor.toLowerCase();
-        var state = (theUrlParams.state == "true");
-        this.log('Received hook for ' + sensor + ' -> ' + state);
+        var newState = (theUrlParams.state == "true");
+        this.log('Received hook for ' + sensor + ' -> ' + newState);
         var responseBody = {
           success: true
         };
-
         for(var i = 0; i < this.people.length; i++){
           var person = this.people[i];
           var target = person.target
           if(person.name.toLowerCase() === sensor) {
-            if (state) {
-              this.storage.setItem('person_' + target, Date.now());
-            } else {
-            }
-
-            var oldState = this.getStateFromCache(target);
-            var newState = state;
-            if (oldState != newState) {
-              //Update our internal cache of states
-              this.updateStateCache(target, newState);
-
-              //Trigger an update to the Homekit service associated with the target
-              var service = this.getServiceForTarget(target);
-              service.getCharacteristic(Characteristic.OccupancyDetected).setValue(newState);
-
-              //Trigger an update to the Homekit service associated with 'Anyone'
-              var anyoneService = this.getServiceForTarget('Anyone');
-              if (anyoneService) {
-                var anyoneState = this.getAnyoneStateFromCache();
-                anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
-              }
-              var anyoneState = this.getAnyoneStateFromCache();
-              anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
-
-              //Trigger an update to the Homekit service associated with 'No One'
-              var noOneService = this.getServiceForTarget('No One');
-              if (noOneService) {
-                var noOneState = this.getNoOneStateFromCache();
-                noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
-              }
-            }
+            this.clearWebhookQueueForTarget(target);
+            this.webhookQueue.push({"target": target, "newState": newState, "timeoutvar": setTimeout((function(){ 
+                this.runWebhookFromQueueForTarget(target);
+            }).bind(this),  this.ignoreReEnterExitSeconds * 1000)});
+            break;
           }
         }
         response.write(JSON.stringify(responseBody));
@@ -162,12 +125,47 @@ function PeopleAccessory(log, config) {
   this.log("WebHook: Started server on port '%s'.", this.webhookPort);
 }
 
+PeopleAccessory.prototype.clearWebhookQueueForTarget = function(target) {
+    for (var i = 0; i < this.webhookQueue.length; i++) {
+        var webhookQueueEntry = this.webhookQueue[i];
+        if(webhookQueueEntry.target == target) {
+            clearTimeout(webhookQueueEntry.timeoutvar);
+            this.webhookQueue.splice(i, 1);
+            break;
+        }
+    }
+}
+
+PeopleAccessory.prototype.runWebhookFromQueueForTarget = function(target) {
+    for (var i = 0; i < this.webhookQueue.length; i++) {
+        var webhookQueueEntry = this.webhookQueue[i];
+        if(webhookQueueEntry.target == target) {
+            this.log('Running hook for ' + target + ' -> ' + webhookQueueEntry.newState);
+            this.webhookQueue.splice(i, 1);
+            if (webhookQueueEntry.newState) {
+                this.storage.setItemSync('ping_' + target, Date.now());
+            }
+            this.storage.setItemSync('webhook_' + target, Date.now());
+            this.setNewState(target, webhookQueueEntry.newState);
+            break;
+        }
+    }
+}
+
+PeopleAccessory.prototype.createService = function(name, target, stateFunction) {
+    var service = new Service.OccupancySensor(name, name);
+    service.target = target;
+    service
+      .getCharacteristic(Characteristic.OccupancyDetected)
+      .on('get', stateFunction);
+    this.services.push(service);
+}
+
 PeopleAccessory.prototype.populateStateCache = function() {
   this.people.forEach(function(personConfig) {
-    var target = this.getTarget(personConfig);
+    var target = personConfig.target;
     var isActive = this.targetIsActive(target);
-
-    this.stateCache[target] = isActive;
+    this.updateStateCache(target, isActive);
   }.bind(this));
 }
 
@@ -175,8 +173,99 @@ PeopleAccessory.prototype.updateStateCache = function(target, state) {
   this.stateCache[target] = state;
 }
 
+PeopleAccessory.prototype.getState = function(target, callback) {
+  callback(null, this.getStateFromCache(target));
+}
+
 PeopleAccessory.prototype.getStateFromCache = function(target) {
   return this.stateCache[target];
+}
+
+PeopleAccessory.prototype.getAnyoneState = function(callback) {
+  var isAnyoneActive = this.getAnyoneStateFromCache();
+  callback(null, isAnyoneActive);
+}
+
+PeopleAccessory.prototype.getAnyoneStateFromCache = function() {
+  for (var i = 0; i < this.people.length; i++) {
+    var personConfig = this.people[i];
+    var target = personConfig.target;
+    var isActive = this.getStateFromCache(target);
+    if (isActive) {
+      return true;
+    }
+  }
+  return false;
+}
+
+PeopleAccessory.prototype.getNoOneState = function(callback) {
+  var isAnyoneActive = this.getAnyoneStateFromCache();
+  callback(null, !isAnyoneActive);
+}
+
+PeopleAccessory.prototype.pingHosts = function() {
+  this.people.forEach(function(personConfig) {
+    var target = personConfig.target;
+    if(this.webhookIsOutdated(target)) {
+        ping.sys.probe(target, function(state){
+          if(this.webhookIsOutdated(target)) {
+              //If target is alive update the last seen time
+              if (state) {
+                this.storage.setItemSync('ping_' + target, Date.now());
+              }
+              var newState = this.targetIsActive(target);
+              this.setNewState(target, newState);
+          }
+        }.bind(this));
+    }
+  }.bind(this));
+  setTimeout(PeopleAccessory.prototype.pingHosts.bind(this), this.pingInterval);
+}
+
+PeopleAccessory.prototype.setNewState = function(target, newState) {
+  var oldState = this.getStateFromCache(target);
+  if (oldState != newState) {
+    //Update our internal cache of states
+    this.updateStateCache(target, newState);
+
+    //Trigger an update to the Homekit service associated with the target
+    var service = this.getServiceForTarget(target);
+    service.getCharacteristic(Characteristic.OccupancyDetected).setValue(newState);
+
+    var anyoneState = this.getAnyoneStateFromCache();
+    
+    //Trigger an update to the Homekit service associated with SENSOR_ANYONE
+    var anyoneService = this.getServiceForTarget(SENSOR_ANYONE);
+    if (anyoneService) {
+      anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
+    }
+
+    //Trigger an update to the Homekit service associated with SENSOR_NOONE
+    var noOneService = this.getServiceForTarget(SENSOR_NOONE);
+    if (noOneService) {
+      noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(!anyoneState);
+    }
+  }
+}
+
+PeopleAccessory.prototype.targetIsActive = function(target) {
+  var lastSeenUnix = this.storage.getItemSync('ping_' + target);
+  if (lastSeenUnix) {
+    var lastSeenMoment = moment(lastSeenUnix);
+    var activeThreshold = moment().subtract(this.threshold, 'm');
+    return lastSeenMoment.isAfter(activeThreshold);
+  }
+  return false;
+}
+
+PeopleAccessory.prototype.webhookIsOutdated = function(target) {
+  var lastWebhookUnix = this.storage.getItemSync('webhook_' + target);
+  if (lastWebhookUnix) {
+    var lastWebhookMoment = moment(lastWebhookUnix);
+    var activeThreshold = moment().subtract(this.threshold, 'm');
+    return lastWebhookMoment.isBefore(activeThreshold);
+  }
+  return true;
 }
 
 PeopleAccessory.prototype.getServices = function() {
@@ -187,126 +276,5 @@ PeopleAccessory.prototype.getServiceForTarget = function(target) {
   var service = this.services.find(function(target, service) {
     return (service.target == target);
   }.bind(this, target));
-
   return service;
-}
-
-
-PeopleAccessory.prototype.getState = function(target, callback) {
-  callback(null, this.getStateFromCache(target));
-}
-
-
-PeopleAccessory.prototype.getAnyoneState = function(callback) {
-  var isAnyoneActive = this.getAnyoneStateFromCache();
-
-  callback(null, isAnyoneActive);
-}
-
-PeopleAccessory.prototype.getAnyoneStateFromCache = function() {
-  for (var i = 0; i < this.people.length; i++) {
-    var personConfig = this.people[i];
-    var target = this.getTarget(personConfig);
-
-    var isActive = this.getStateFromCache(target);
-
-    if (isActive) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-PeopleAccessory.prototype.getNoOneState = function(callback) {
-  var isAnyoneActive = !this.getAnyoneStateFromCache();
-
-  callback(null, isAnyoneActive);
-}
-
-PeopleAccessory.prototype.getNoOneStateFromCache = function() {
-  for (var i = 0; i < this.people.length; i++) {
-    var personConfig = this.people[i];
-    var target = this.getTarget(personConfig);
-
-    var isActive = this.getStateFromCache(target);
-
-    if (isActive) {
-      return false;
-    }
-  }
-
-  return false;
-}
-
-
-PeopleAccessory.prototype.pingHosts = function() {
-  this.people.forEach(function(personConfig) {
-
-    var target = this.getTarget(personConfig);
-    ping.sys.probe(target, function(state){
-      //If target is alive update the last seen time
-      if (state) {
-        this.storage.setItem('person_' + target, Date.now());
-      }
-
-      var oldState = this.getStateFromCache(target);
-      var newState = this.targetIsActive(target);
-      if (oldState != newState) {
-        //Update our internal cache of states
-        this.updateStateCache(target, newState);
-
-        //Trigger an update to the Homekit service associated with the target
-        var service = this.getServiceForTarget(target);
-        service.getCharacteristic(Characteristic.OccupancyDetected).setValue(newState);
-
-        //Trigger an update to the Homekit service associated with 'Anyone'
-        var anyoneService = this.getServiceForTarget('Anyone');
-        if (anyoneService) {
-          var anyoneState = this.getAnyoneStateFromCache();
-          anyoneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(anyoneState);
-        }
-
-        //Trigger an update to the Homekit service associated with 'No One'
-        var noOneService = this.getServiceForTarget('No One');
-        if (noOneService) {
-          var noOneState = this.getNoOneStateFromCache();
-          noOneService.getCharacteristic(Characteristic.OccupancyDetected).setValue(noOneState);
-        }
-      }
-    }.bind(this));
-  }.bind(this));
-
-  setTimeout(PeopleAccessory.prototype.pingHosts.bind(this), 1000);
-}
-
-
-/**
- * Handle old config entries that use a key of 'ip' instead of 'target'
- */
-PeopleAccessory.prototype.getTarget = function(personConfig) {
-  if (personConfig.ip) {
-    return personConfig.ip;
-  }
-
-  return personConfig.target;
-}
-
-
-PeopleAccessory.prototype.targetIsActive = function(target) {
-  var lastSeenUnix = this.storage.getItem('person_' + target);
-
-  if (lastSeenUnix) {
-    var lastSeenMoment = moment(lastSeenUnix);
-    var activeThreshold = moment().subtract(this.threshold, 'm');
-    //var activeThreshold = moment().subtract(2, 's');
-
-    var isActive = lastSeenMoment.isAfter(activeThreshold);
-
-    if (isActive) {
-      return true;
-    }
-  }
-
-  return false;
 }
