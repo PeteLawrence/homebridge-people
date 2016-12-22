@@ -203,12 +203,8 @@ PeopleAccessory.prototype.getNoOneState = function(callback) {
 PeopleAccessory.prototype.pingHosts = function() {
   this.people.forEach(function(personConfig) {
     var target = personConfig.target;
-    this.log('webhookIsOutdated -> ' + this.webhookIsOutdated(target));
     if(this.webhookIsOutdated(target)) {
-        this.log('Running ping for ' + target);
         ping.sys.probe(target, function(state){
-          this.log('Ping for ' + target + ' -> ' + state);
-          this.log('webhookIsOutdated -> ' + this.webhookIsOutdated(target));
           if(this.webhookIsOutdated(target)) {
               //If target is alive update the last seen time
               if (state) {
