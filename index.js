@@ -111,10 +111,9 @@ function PeopleAccessory(log, config) {
           var target = person.target
           if(person.name.toLowerCase() === sensor) {
             this.clearWebhookQueueForTarget(target);
-            this.webhookQueue.push({"target": target, "newState": newState});
-            setTimeout((function(){ 
+            this.webhookQueue.push({"target": target, "newState": newState, "timeoutvar": setTimeout((function(){ 
                 this.runWebhookFromQueueForTarget(target);
-            }).bind(this),  this.ignoreReEnterExitSeconds * 1000);
+            }).bind(this),  this.ignoreReEnterExitSeconds * 1000)});
             break;
           }
         }
@@ -130,6 +129,7 @@ PeopleAccessory.prototype.clearWebhookQueueForTarget = function(target) {
     for (var i = 0; i < this.webhookQueue.length; i++) {
         var webhookQueueEntry = this.webhookQueue[i];
         if(webhookQueueEntry.target == target) {
+            clearTimeout(webhookQueueEntry.timeoutvar);
             this.webhookQueue.splice(i, 1);
             break;
         }
@@ -205,12 +205,14 @@ PeopleAccessory.prototype.pingHosts = function() {
     var target = personConfig.target;
     if(this.webhookIsOutdated(target)) {
         ping.sys.probe(target, function(state){
-          //If target is alive update the last seen time
-          if (state) {
-            this.storage.setItem('ping_' + target, Date.now());
+          if(this.webhookIsOutdated(target)) {
+              //If target is alive update the last seen time
+              if (state) {
+                this.storage.setItem('ping_' + target, Date.now());
+              }
+              var newState = this.targetIsActive(target);
+              this.setNewState(target, newState);
           }
-          var newState = this.targetIsActive(target);
-          this.setNewState(target, newState);
         }.bind(this));
     }
   }.bind(this));
