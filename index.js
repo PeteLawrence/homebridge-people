@@ -142,7 +142,7 @@ PeopleAccessory.prototype.runWebhookFromQueueForTarget = function(target) {
         if(webhookQueueEntry.target == target) {
             this.log('Running hook for ' + target + ' -> ' + webhookQueueEntry.newState);
             this.webhookQueue.splice(i, 1);
-            this.storage.setItem('webhook_' + target, Date.now());
+            this.storage.setItemSync('webhook_' + target, Date.now());
             this.setNewState(target, webhookQueueEntry.newState);
             break;
         }
@@ -212,7 +212,7 @@ PeopleAccessory.prototype.pingHosts = function() {
           if(this.webhookIsOutdated(target)) {
               //If target is alive update the last seen time
               if (state) {
-                this.storage.setItem('ping_' + target, Date.now());
+                this.storage.setItemSync('ping_' + target, Date.now());
               }
               var newState = this.targetIsActive(target);
               this.setNewState(target, newState);
@@ -250,7 +250,7 @@ PeopleAccessory.prototype.setNewState = function(target, newState) {
 }
 
 PeopleAccessory.prototype.targetIsActive = function(target) {
-  var lastSeenUnix = this.storage.getItem('ping_' + target);
+  var lastSeenUnix = this.storage.getItemSync('ping_' + target);
   if (lastSeenUnix) {
     var lastSeenMoment = moment(lastSeenUnix);
     var activeThreshold = moment().subtract(this.threshold, 'm');
@@ -260,7 +260,7 @@ PeopleAccessory.prototype.targetIsActive = function(target) {
 }
 
 PeopleAccessory.prototype.webhookIsOutdated = function(target) {
-  var lastWebhookUnix = this.storage.getItem('webhook_' + target);
+  var lastWebhookUnix = this.storage.getItemSync('webhook_' + target);
   if (lastWebhookUnix) {
     var lastWebhookMoment = moment(lastWebhookUnix);
     var activeThreshold = moment().subtract(this.threshold, 'm');
