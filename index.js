@@ -142,6 +142,9 @@ PeopleAccessory.prototype.runWebhookFromQueueForTarget = function(target) {
         if(webhookQueueEntry.target == target) {
             this.log('Running hook for ' + target + ' -> ' + webhookQueueEntry.newState);
             this.webhookQueue.splice(i, 1);
+            if (webhookQueueEntry.newState) {
+                this.storage.setItemSync('ping_' + target, Date.now());
+            }
             this.storage.setItemSync('webhook_' + target, Date.now());
             this.setNewState(target, webhookQueueEntry.newState);
             break;
