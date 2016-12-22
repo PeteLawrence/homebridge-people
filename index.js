@@ -131,7 +131,7 @@ PeopleAccessory.prototype.clearWebhookQueueForTarget = function(target) {
     for (var i = 0; i < this.webhookQueue.length; i++) {
         var webhookQueueEntry = this.webhookQueue[i];
         if(webhookQueueEntry.target == target) {
-            this.webhookQueue.splice(i, i);
+            this.webhookQueue.splice(i, 1);
             this.log('Clearing hook for ' + target);
             break;
         }
@@ -145,7 +145,7 @@ PeopleAccessory.prototype.runWebhookFromQueueForTarget = function(target) {
         var webhookQueueEntry = this.webhookQueue[i];
         if(webhookQueueEntry.target == target) {
             this.log('Running hook for ' + target + ' -> ' + webhookQueueEntry.newState);
-            this.webhookQueue.splice(i, i);
+            this.webhookQueue.splice(i, 1);
             this.storage.setItem('webhook_' + target, Date.now());
             this.setNewState(target, webhookQueueEntry.newState);
             break;
