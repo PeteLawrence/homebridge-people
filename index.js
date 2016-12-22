@@ -26,7 +26,7 @@ function PeopleAccessory(log, config) {
   this.threshold = config['threshold'] || 15;
   this.webhookPort = config["webhookPort"] || 51828;
   this.cacheDirectory = config["cacheDirectory"] || HomebridgeAPI.user.persistPath();
-  this.pingInterval = config["pingInterval"] || 1000;
+  this.pingInterval = config["pingInterval"] || 10000;
   this.ignoreReEnterExitSeconds = config["ignoreReEnterExitSeconds"] || 0;
   this.services = [];
   this.storage = require('node-persist');
@@ -204,11 +204,12 @@ PeopleAccessory.prototype.getNoOneState = function(callback) {
 }
 
 PeopleAccessory.prototype.pingHosts = function() {
+  var pingEndedParams = {pingsEnded: 0};
   this.people.forEach(function(personConfig) {
     var target = personConfig.target;
     if(this.webhookIsOutdated(target)) {
-        this.log("Pinging %s.", target);
-        ping.sys.probe(target, function(state){
+        this.log("Pinging %s %s.", target, moment().format());
+        ping.sys.probe(target, function(params, state){
           if(this.webhookIsOutdated(target)) {
               //If target is alive update the last seen time
               if (state) {
@@ -217,10 +218,13 @@ PeopleAccessory.prototype.pingHosts = function() {
               var newState = this.targetIsActive(target);
               this.setNewState(target, newState);
           }
-        }.bind(this));
+          params.pingsEnded = params.pingsEnded + 1;
+          if(params.pingsEnded == this.people.length) {
+              setTimeout(PeopleAccessory.prototype.pingHosts.bind(this), this.pingInterval);
+          }
+        }.bind(this, pingEndedParams));
     }
   }.bind(this));
-  setTimeout(PeopleAccessory.prototype.pingHosts.bind(this), this.pingInterval);
 }
 
 PeopleAccessory.prototype.setNewState = function(target, newState) {

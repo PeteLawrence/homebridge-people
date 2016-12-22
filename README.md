@@ -25,7 +25,7 @@ It can also receive webhooks sent by location-aware mobile apps (such as [Locati
       "nooneSensor" : false, // (optional, default: false)
       "webhookPort": 51828, // (optional, default: 51828)
       "cacheDirectory": "./.node-persist/storage", // (optional, default: "./.node-persist/storage")
-      "pingInterval": 1000,  // (optional, in milliseconds, default: 1000, if set to -1 than the ping mechanism will not be used)
+      "pingInterval": 10000,  // (optional, in milliseconds, default: 10000, if set to -1 than the ping mechanism will not be used)
       "ignoreReEnterExitSeconds": 0  // (optional, in minutes, default: 0, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds)
     }
 ],
