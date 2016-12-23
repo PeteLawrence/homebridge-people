@@ -204,11 +204,11 @@ PeopleAccessory.prototype.isActive = function() {
 
 PeopleAccessory.prototype.ping = function() {
     if(this.webhookIsOutdated()) {
-        //this.log("Pinging %s %s.", target, moment().format());
+        //this.log("Pinging %s %s.", this.target, moment().format());
         ping.sys.probe(this.target, function(state){
             if(this.webhookIsOutdated()) {
                 if (state) {
-                    this.platform.storage.setItemSync('ping_' + target, Date.now());
+                    this.platform.storage.setItemSync('ping_' + this.target, Date.now());
                 }
                 var newState = this.isActive();
                 this.setNewState(newState);
