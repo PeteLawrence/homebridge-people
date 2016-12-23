@@ -171,7 +171,7 @@ function PeopleAccessory(log, config, platform) {
     this.platform = platform;
     this.stateCache = false;
     
-    this.service = new Service.OccupancySensor(name);
+    this.service = new Service.OccupancySensor(this.name);
     service
         .getCharacteristic(Characteristic.OccupancyDetected)
         .on('get', this.getState.bind(this));
@@ -257,7 +257,7 @@ function PeopleAllAccessory(log, name, platform) {
     this.name = name;
     this.platform = platform;
     
-    this.service = new Service.OccupancySensor(name);
+    this.service = new Service.OccupancySensor(this.name);
     service
         .getCharacteristic(Characteristic.OccupancyDetected)
         .on('get', this.getState.bind(this));
