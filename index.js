@@ -45,18 +45,18 @@ PeoplePlatform.prototype = {
         this.peopleAccessories = [];
         for(var i = 0; i < this.people.length; i++){
             var peopleAccessory = new PeopleAccessory(this.log, this.people[i], this);
-            accessories.push(peopleAccessory);
-            peopleAccessories.push(peopleAccessory);
+            this.accessories.push(peopleAccessory);
+            this.peopleAccessories.push(peopleAccessory);
         }
         if(this.anyoneSensor) {
             this.peopleAnyOneAccessory = new PeopleAllAccessory(this.log, SENSOR_ANYONE, this);
-            accessories.push(this.peopleAnyOneAccessory);
+            this.accessories.push(this.peopleAnyOneAccessory);
         }
         if(this.nooneSensor) {
             this.peopleNoOneAccessory = new PeopleAllAccessory(this.log, SENSOR_NOONE, this);
-            accessories.push(this.peopleNoOneAccessory);
+            this.accessories.push(this.peopleNoOneAccessory);
         }
-        callback(accessories);
+        callback(this.accessories);
         
         this.startServer();
     },
@@ -143,7 +143,7 @@ PeoplePlatform.prototype = {
                     this.storage.setItemSync('ping_' + target, Date.now());
                 }
                 this.storage.setItemSync('webhook_' + target, Date.now());
-                getPeopleAccessoryForTarget(target).setNewState(webhookQueueEntry.newState);
+                this.getPeopleAccessoryForTarget(target).setNewState(webhookQueueEntry.newState);
                 break;
             }
         }
