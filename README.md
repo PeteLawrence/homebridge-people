@@ -1,3 +1,5 @@
+**NOTE: Since version X.X.X the configuration changed to platform. You must fix your configuration to match the new configuration format.**
+***
 # homebridge-people
 This is a plugin for [homebridge](https://github.com/nfarina/homebridge). It monitors who is at home, based on their smartphone being seen on the network recently.
 
@@ -12,23 +14,22 @@ It can also receive webhooks sent by location-aware mobile apps (such as [Locati
 # Configuration
 
 ```
-"accessories": [
+"platforms": [
     {
-      "accessory" : "people",
-      "name" : "People",
-      "people" : [
-       { "name" : "Pete", "target" : "PetesiPhone" },
-       { "name" : "Someone Else", "target" : "192.168.1.68" }
-      ],
-      "threshold" : 15, // (optional, in minutes, default: 15)
-      "anyoneSensor" : true, // (optional, default: true)
-      "nooneSensor" : false, // (optional, default: false)
-      "webhookPort": 51828, // (optional, default: 51828)
-      "cacheDirectory": "./.node-persist/storage", // (optional, default: "./.node-persist/storage")
-      "pingInterval": 10000,  // (optional, in milliseconds, default: 10000, if set to -1 than the ping mechanism will not be used)
-      "ignoreReEnterExitSeconds": 0  // (optional, in minutes, default: 0, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds)
+        "platform": "People",
+        "threshold" : 15, // (optional, in minutes, default: 15)
+        "anyoneSensor" : true, // (optional, default: true)
+        "nooneSensor" : false, // (optional, default: false)
+        "webhookPort": 51828, // (optional, default: 51828)
+        "cacheDirectory": "./.node-persist/storage", // (optional, default: "./.node-persist/storage")
+        "pingInterval": 10000,  // (optional, in milliseconds, default: 10000, if set to -1 than the ping mechanism will not be used)
+        "ignoreReEnterExitSeconds": 0,  // (optional, in minutes, default: 0, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds)
+        "people" : [
+           { "name" : "Pete", "target" : "PetesiPhone" },
+           { "name" : "Someone Else", "target" : "192.168.1.68" }
+        ]
     }
-],
+]
 ```
 
 ```target``` may be either a hostname or an IP address
