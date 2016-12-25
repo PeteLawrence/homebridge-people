@@ -216,6 +216,9 @@ PeopleAccessory.prototype.ping = function() {
             setTimeout(PeopleAccessory.prototype.ping.bind(this), this.platform.pingInterval);
         }.bind(this));
     }
+    else {
+        setTimeout(PeopleAccessory.prototype.ping.bind(this), this.platform.pingInterval);
+    }
 }
 
 PeopleAccessory.prototype.webhookIsOutdated = function() {
