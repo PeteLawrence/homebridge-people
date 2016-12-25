@@ -8,7 +8,6 @@ var SENSOR_ANYONE = 'Anyone';
 var SENSOR_NOONE = 'No One';
 
 var Service, Characteristic, HomebridgeAPI;
-
 module.exports = function(homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
@@ -139,10 +138,7 @@ PeoplePlatform.prototype = {
             if(webhookQueueEntry.target == target) {
                 this.log('Running hook for ' + target + ' -> ' + webhookQueueEntry.newState);
                 this.webhookQueue.splice(i, 1);
-                if (webhookQueueEntry.newState) {
-                    this.storage.setItemSync('ping_' + target, Date.now());
-                }
-                this.storage.setItemSync('webhook_' + target, Date.now());
+                this.storage.setItemSync('lastWebhook_' + target, Date.now());
                 this.getPeopleAccessoryForTarget(target).setNewState(webhookQueueEntry.newState);
                 break;
             }
@@ -193,7 +189,7 @@ PeopleAccessory.prototype.initStateCache = function() {
 }
 
 PeopleAccessory.prototype.isActive = function() {
-    var lastSeenUnix = this.platform.storage.getItemSync('ping_' + this.target);
+    var lastSeenUnix = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
     if (lastSeenUnix) {
         var lastSeenMoment = moment(lastSeenUnix);
         var activeThreshold = moment().subtract(this.platform.threshold, 'm');
@@ -203,32 +199,22 @@ PeopleAccessory.prototype.isActive = function() {
 }
 
 PeopleAccessory.prototype.ping = function() {
-    if(this.webhookIsOutdated()) {
-        //this.log("Pinging %s %s.", this.target, moment().format());
-        ping.sys.probe(this.target, function(state){
-            if(this.webhookIsOutdated()) {
-                if (state) {
-                    this.platform.storage.setItemSync('ping_' + this.target, Date.now());
-                }
-                var newState = this.isActive();
-                this.setNewState(newState);
-            }
-            setTimeout(PeopleAccessory.prototype.ping.bind(this), this.platform.pingInterval);
-        }.bind(this));
-    }
-    else {
+    ping.sys.probe(this.target, function(state){
+        if (state) {
+            this.platform.storage.setItemSync('lastSuccessfulPing_' + this.target, Date.now());
+        }
+        if(this.successfulPingOccurredAfterWebhook()) {
+            var newState = this.isActive();
+            this.setNewState(newState);
+        }
         setTimeout(PeopleAccessory.prototype.ping.bind(this), this.platform.pingInterval);
-    }
+    }.bind(this));
 }
 
-PeopleAccessory.prototype.webhookIsOutdated = function() {
-    var lastWebhookUnix = this.platform.storage.getItemSync('webhook_' + this.target);
-    if (lastWebhookUnix) {
-        var lastWebhookMoment = moment(lastWebhookUnix);
-        var activeThreshold = moment().subtract(this.platform.threshold, 'm');
-        return lastWebhookMoment.isBefore(activeThreshold);
-    }
-    return true;
+PeopleAccessory.prototype.successfulPingOccurredAfterWebhook = function() {
+    var lastSuccessfulPingMoment = moment(this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target));
+    var lastWebhookMoment = moment(this.platform.storage.getItemSync('lastWebhook_' + this.target));
+    return lastSuccessfulPingMoment.isAfter(lastWebhookMoment);
 }
 
 PeopleAccessory.prototype.setNewState = function(newState) {
