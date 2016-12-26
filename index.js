@@ -212,8 +212,16 @@ PeopleAccessory.prototype.ping = function() {
 }
 
 PeopleAccessory.prototype.successfulPingOccurredAfterWebhook = function() {
-    var lastSuccessfulPingMoment = moment(this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target));
-    var lastWebhookMoment = moment(this.platform.storage.getItemSync('lastWebhook_' + this.target));
+    var lastSuccessfulPing = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
+    if(!lastSuccessfulPing) {
+        return false;
+    }
+    var lastWebhook = this.platform.storage.getItemSync('lastWebhook_' + this.target);
+    if(!lastWebhook) {
+        return true;
+    }
+    var lastSuccessfulPingMoment = moment(lastSuccessfulPing);
+    var lastWebhookMoment = moment(lastWebhook);
     return lastSuccessfulPingMoment.isAfter(lastWebhookMoment);
 }
 
