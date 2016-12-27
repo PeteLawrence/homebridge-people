@@ -199,16 +199,33 @@ PeopleAccessory.prototype.isActive = function() {
 }
 
 PeopleAccessory.prototype.ping = function() {
-    ping.sys.probe(this.target, function(state){
-        if (state) {
-            this.platform.storage.setItemSync('lastSuccessfulPing_' + this.target, Date.now());
-        }
-        if(this.successfulPingOccurredAfterWebhook()) {
-            var newState = this.isActive();
-            this.setNewState(newState);
-        }
+    if(this.webhookIsOutdated()) {
+        ping.sys.probe(this.target, function(state){
+            if(this.webhookIsOutdated()) {
+                if (state) {
+                    this.platform.storage.setItemSync('lastSuccessfulPing_' + this.target, Date.now());
+                }
+                if(this.successfulPingOccurredAfterWebhook()) {
+                    var newState = this.isActive();
+                    this.setNewState(newState);
+                }
+            }
+            setTimeout(PeopleAccessory.prototype.ping.bind(this), this.platform.pingInterval);
+        }.bind(this));
+    }
+    else {
         setTimeout(PeopleAccessory.prototype.ping.bind(this), this.platform.pingInterval);
-    }.bind(this));
+    }
+}
+
+PeopleAccessory.prototype.webhookIsOutdated = function() {
+    var lastWebhookUnix = this.platform.storage.getItemSync('lastWebhook_' + this.target);
+    if (lastWebhookUnix) {
+        var lastWebhookMoment = moment(lastWebhookUnix);
+        var activeThreshold = moment().subtract(this.platform.threshold, 'm');
+        return lastWebhookMoment.isBefore(activeThreshold);
+    }
+    return true;
 }
 
 PeopleAccessory.prototype.successfulPingOccurredAfterWebhook = function() {
