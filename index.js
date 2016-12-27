@@ -255,6 +255,7 @@ PeopleAccessory.prototype.setNewState = function(newState) {
         if(this.platform.peopleNoOneAccessory) {
             this.platform.peopleNoOneAccessory.refreshState();
         }
+        this.log('Changed occupancy state for ' + this.target + ' to ' + newState);
     }
 }
 
