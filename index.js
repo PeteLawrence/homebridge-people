@@ -255,7 +255,18 @@ PeopleAccessory.prototype.setNewState = function(newState) {
         if(this.platform.peopleNoOneAccessory) {
             this.platform.peopleNoOneAccessory.refreshState();
         }
-        this.log('Changed occupancy state for ' + this.target + ' to ' + newState);
+        
+        var lastSuccessfulPingMoment = "none";
+        var lastWebhookMoment = "none";
+        var lastSuccessfulPing = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
+        if(lastSuccessfulPing) {
+            lastSuccessfulPingMoment = moment(lastSuccessfulPing).format();
+        }
+        var lastWebhook = this.platform.storage.getItemSync('lastWebhook_' + this.target);
+        if(lastWebhook) {
+            lastWebhookMoment = moment(lastWebhook).format();
+        }
+        this.log('Changed occupancy state for %s to %s. Last ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
     }
 }
 
