@@ -1,4 +1,4 @@
-**NOTE: Since version X.X.X the configuration changed to platform. You must fix your configuration to match the new configuration format.**
+**NOTE: Since version 0.5 the configuration changed to platform. You must fix your configuration to match the new configuration format.**
 ***
 # homebridge-people
 This is a plugin for [homebridge](https://github.com/nfarina/homebridge). It monitors who is at home, based on their smartphone being seen on the network recently.
@@ -76,3 +76,8 @@ By default homebridge-people listens on port 51828 for updates.  This can be cha
 # Notes
 ## Running on a raspberry pi as non 'pi' user
 On some versions of raspbian, users are not able to use the ping program by default. If none of your devices show online try running ```sudo chmod u+s /bin/ping```. Thanks to oberstmueller for the tip.
+
+# Thanks
+Thanks to everyone who's helped contribute code, feedback and support.  In particular:
+* [wr](https://github.com/wr) - for adding in webhook support.
+* [benzman81](https://github.com/benzman81) - for porting the plugin over to be a Platform and improving how ping and webhooks work together, and numerous other fixes.
