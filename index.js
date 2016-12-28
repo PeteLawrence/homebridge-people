@@ -266,7 +266,7 @@ PeopleAccessory.prototype.setNewState = function(newState) {
         if(lastWebhook) {
             lastWebhookMoment = moment(lastWebhook).format();
         }
-        this.log('Changed occupancy state for %s to %s. Last ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
+        this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
     }
 }
 
