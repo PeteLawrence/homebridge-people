@@ -25,8 +25,20 @@ It can also receive webhooks sent by location-aware mobile apps (such as [Locati
         "pingInterval": 10000,  // (optional, in milliseconds, default: 10000, if set to -1 than the ping mechanism will not be used)
         "ignoreReEnterExitSeconds": 0,  // (optional, in minutes, default: 0, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds)
         "people" : [
-           { "name" : "Pete", "target" : "PetesiPhone" },
-           { "name" : "Someone Else", "target" : "192.168.1.68" }
+            {
+                "name" : "Pete", 
+                "target" : "PetesiPhone",
+                "threshold" : 15, // (optional, in minutes, default: used from platform
+                "pingInterval": 10000,  // (optional, in milliseconds, default: used from platform, if set to -1 than the ping mechanism will not be used)
+                "ignoreReEnterExitSeconds": 0  // (optional, in minutes, default: used from platform, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds)
+            },
+            {
+                "name" : "Someone Else", 
+                "target" : "192.168.1.68",
+                "threshold" : 15, // (optional, in minutes, default: used from platform
+                "pingInterval": 10000,  // (optional, in milliseconds, default: used from platform, if set to -1 than the ping mechanism will not be used)
+                "ignoreReEnterExitSeconds": 0  // (optional, in minutes, default: used from platform, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds)
+            }
         ]
     }
 ]

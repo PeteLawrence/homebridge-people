@@ -109,7 +109,7 @@ PeoplePlatform.prototype = {
                     this.clearWebhookQueueForTarget(target);
                     this.webhookQueue.push({"target": target, "newState": newState, "timeoutvar": setTimeout((function(){ 
                         this.runWebhookFromQueueForTarget(target);
-                    }).bind(this),  this.ignoreReEnterExitSeconds * 1000)});
+                    }).bind(this),  peopleAccessory.ignoreReEnterExitSeconds * 1000)});
                     break;
                   }
                 }
@@ -165,6 +165,9 @@ function PeopleAccessory(log, config, platform) {
     this.name = config['name'];
     this.target = config['target'];
     this.platform = platform;
+    this.threshold = config['threshold'] || this.platform.threshold;
+    this.pingInterval = config['pingInterval'] || this.platform.pingInterval;
+    this.ignoreReEnterExitSeconds = config['ignoreReEnterExitSeconds'] || this.platform.ignoreReEnterExitSeconds;
     this.stateCache = false;
     
     this.service = new Service.OccupancySensor(this.name);
@@ -174,7 +177,7 @@ function PeopleAccessory(log, config, platform) {
   
     this.initStateCache();
 
-    if(this.platform.pingInterval > -1) {
+    if(this.pingInterval > -1) {
         this.ping();
     }
 }
@@ -192,7 +195,7 @@ PeopleAccessory.prototype.isActive = function() {
     var lastSeenUnix = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
     if (lastSeenUnix) {
         var lastSeenMoment = moment(lastSeenUnix);
-        var activeThreshold = moment().subtract(this.platform.threshold, 'm');
+        var activeThreshold = moment().subtract(this.threshold, 'm');
         return lastSeenMoment.isAfter(activeThreshold);
     }
     return false;
@@ -210,11 +213,11 @@ PeopleAccessory.prototype.ping = function() {
                     this.setNewState(newState);
                 }
             }
-            setTimeout(PeopleAccessory.prototype.ping.bind(this), this.platform.pingInterval);
+            setTimeout(PeopleAccessory.prototype.ping.bind(this), this.pingInterval);
         }.bind(this));
     }
     else {
-        setTimeout(PeopleAccessory.prototype.ping.bind(this), this.platform.pingInterval);
+        setTimeout(PeopleAccessory.prototype.ping.bind(this), this.pingInterval);
     }
 }
 
@@ -222,7 +225,7 @@ PeopleAccessory.prototype.webhookIsOutdated = function() {
     var lastWebhookUnix = this.platform.storage.getItemSync('lastWebhook_' + this.target);
     if (lastWebhookUnix) {
         var lastWebhookMoment = moment(lastWebhookUnix);
-        var activeThreshold = moment().subtract(this.platform.threshold, 'm');
+        var activeThreshold = moment().subtract(this.threshold, 'm');
         return lastWebhookMoment.isBefore(activeThreshold);
     }
     return true;
