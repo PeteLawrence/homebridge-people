@@ -25,7 +25,7 @@ module.exports = function(homebridge) {
 function PeoplePlatform(log, config){
     this.log = log;
     this.threshold = config['threshold'] || 15;
-    this.anyoneSensor = config['anyoneSensor'] || true;
+    this.anyoneSensor = config['anyoneSensor'] || false;
     this.nooneSensor = config['nooneSensor'] || false;
     this.webhookPort = config["webhookPort"] || 51828;
     this.cacheDirectory = config["cacheDirectory"] || HomebridgeAPI.user.persistPath();
@@ -87,6 +87,20 @@ PeoplePlatform.prototype = {
               response.statusCode = 200;
               response.setHeader('Content-Type', 'application/json');
 
+            if(theUrlParams.sensor.toLowerCase() === "all")
+            {
+                var responseAll = "0";
+                for(var i = 0; i < this.peopleAccessories.length; i++){
+                var peopleAccessory = this.peopleAccessories[i];
+                var isActive = peopleAccessory.stateCache;
+                if(isActive) {
+                    responseAll = "1";
+                }
+               }
+                response.write(responseAll);
+                response.end();
+            }
+            else{
               if(!theUrlParams.sensor || !theUrlParams.state) {
                 response.statusCode = 404;
                 response.setHeader("Content-Type", "text/plain");
@@ -116,6 +130,7 @@ PeoplePlatform.prototype = {
                 response.write(JSON.stringify(responseBody));
                 response.end();
               }
+            }
             }).bind(this));
         }).bind(this)).listen(this.webhookPort);
         this.log("WebHook: Started server on port '%s'.", this.webhookPort);

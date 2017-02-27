@@ -69,6 +69,8 @@ For example, you might want to run your "Arrive Home" scene when _Anyone_ gets h
 
 These sensors can be enabled by adding `"anyoneSensor" : true` and `"nooneSensor" : true` to your homebridge `config.json` file.
 
+The anyone sensor can also be checked by visiting `http://youripaddress:51828/?sensor=all` which will return a 1 or 0 based on the status. This can be used with http based plugins such as [homebridge-http-advanced](https://github.com/NovaGL/homebridge-http-advanced).
+
 # Accuracy
 This plugin requires that the devices being monitored are connected to the network. iPhones (and I expect others) deliberately disconnect from the network once the screen is turned off to save power, meaning just because the device isn't connected, it doesn't mean that the devices owner isn't at home. Fortunately, iPhones (and I expect others) periodically reconnect to the network to check for updates, emails, etc. This plugin works by keeping track of the last time a device was seen, and comparing that to a threshold value (in minutes).
 
