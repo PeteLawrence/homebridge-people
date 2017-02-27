@@ -87,6 +87,17 @@ PeoplePlatform.prototype = {
               response.statusCode = 200;
               response.setHeader('Content-Type', 'application/json');
 
+            if(theUrlParams.sensor.toLowerCase() === "all")
+            {
+                var responseAll = "0";
+                if(this.peopleAnyOneAccessory.getAnyoneStateFromCache())
+                {
+                  responseAll = "1";
+                }
+                response.write(responseAll);
+                response.end();
+            }
+            else{
               if(!theUrlParams.sensor || !theUrlParams.state) {
                 response.statusCode = 404;
                 response.setHeader("Content-Type", "text/plain");
@@ -116,6 +127,7 @@ PeoplePlatform.prototype = {
                 response.write(JSON.stringify(responseBody));
                 response.end();
               }
+            }
             }).bind(this));
         }).bind(this)).listen(this.webhookPort);
         this.log("WebHook: Started server on port '%s'.", this.webhookPort);
