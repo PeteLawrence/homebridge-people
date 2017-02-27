@@ -1,0 +1,88 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "homebridge-people",
+        "scope": null,
+        "escapedName": "homebridge-people",
+        "name": "homebridge-people",
+        "rawSpec": "",
+        "spec": "latest",
+        "type": "tag"
+      },
+      "/usr/lib/node_modules"
+    ]
+  ],
+  "_from": "homebridge-people@latest",
+  "_id": "homebridge-people@0.5.0",
+  "_inCache": true,
+  "_location": "/homebridge-people",
+  "_nodeVersion": "5.6.0",
+  "_npmOperationalInternal": {
+    "host": "packages-12-west.internal.npmjs.com",
+    "tmp": "tmp/homebridge-people-0.5.0.tgz_1482936343126_0.5365542445797473"
+  },
+  "_npmUser": {
+    "name": "petelawrence",
+    "email": "peteelawrence@icloud.com"
+  },
+  "_npmVersion": "3.6.0",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "homebridge-people",
+    "scope": null,
+    "escapedName": "homebridge-people",
+    "name": "homebridge-people",
+    "rawSpec": "",
+    "spec": "latest",
+    "type": "tag"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/homebridge-people/-/homebridge-people-0.5.0.tgz",
+  "_shasum": "89fa48db32d393fdc575d5173d44e20e01579d16",
+  "_shrinkwrap": null,
+  "_spec": "homebridge-people",
+  "_where": "/usr/lib/node_modules",
+  "bugs": {
+    "url": "https://github.com/PeteLawrence/homebridge-people/issues"
+  },
+  "dependencies": {
+    "moment": "^2.11.2",
+    "node-persist": "0.0.8",
+    "ping": "^0.1.10",
+    "request": "^2.79.0"
+  },
+  "description": "Homebridge plugin that provides details of who is in a Home",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "shasum": "89fa48db32d393fdc575d5173d44e20e01579d16",
+    "tarball": "https://registry.npmjs.org/homebridge-people/-/homebridge-people-0.5.0.tgz"
+  },
+  "engines": {
+    "homebridge": ">=0.2.0",
+    "node": ">=0.12.0"
+  },
+  "gitHead": "e4dbd161dc31ccb7e11545b4fec28fb819f3cc4a",
+  "homepage": "https://github.com/PeteLawrence/homebridge-people#readme",
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "maintainers": [
+    {
+      "name": "petelawrence",
+      "email": "peteelawrence@icloud.com"
+    }
+  ],
+  "name": "homebridge-people",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeteLawrence/homebridge-people.git"
+  },
+  "scripts": {},
+  "version": "0.5.0"
+}
