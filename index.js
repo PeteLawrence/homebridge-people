@@ -90,10 +90,13 @@ PeoplePlatform.prototype = {
             if(theUrlParams.sensor.toLowerCase() === "all")
             {
                 var responseAll = "0";
-                if(this.peopleAnyOneAccessory.getAnyoneStateFromCache())
-                {
-                  responseAll = "1";
+                for(var i = 0; i < this.peopleAccessories.length; i++){
+                var peopleAccessory = this.peopleAccessories[i];
+                var isActive = peopleAccessory.stateCache;
+                if(isActive) {
+                    responseAll = "1";
                 }
+               }
                 response.write(responseAll);
                 response.end();
             }
