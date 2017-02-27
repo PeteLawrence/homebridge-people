@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "_args": [
     [
       {
@@ -47,12 +48,28 @@
   "_where": "/usr/lib/node_modules",
   "bugs": {
     "url": "https://github.com/PeteLawrence/homebridge-people/issues"
+=======
+  "name": "homebridge-people",
+  "version": "0.4.0",
+  "description": "Homebridge plugin that provides details of who is in a Home",
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PeteLawrence/homebridge-people.git"
+  },
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+>>>>>>> 7cad699634f3af68864efab3e2d194196678f522
   },
   "dependencies": {
     "moment": "^2.11.2",
     "node-persist": "0.0.8",
     "ping": "^0.1.10",
     "request": "^2.79.0"
+<<<<<<< HEAD
   },
   "description": "Homebridge plugin that provides details of who is in a Home",
   "devDependencies": {},
@@ -85,4 +102,7 @@
   },
   "scripts": {},
   "version": "0.5.0"
+=======
+  }
+>>>>>>> 7cad699634f3af68864efab3e2d194196678f522
 }
