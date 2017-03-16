@@ -19,7 +19,9 @@ It can also receive webhooks sent by location-aware mobile apps (such as [Locati
         "platform": "People",
         "threshold" : 15,
         "anyoneSensor" : true,
+        "anyoneSensorName" : "Anyone",
         "nooneSensor" : false,
+        "nooneSensorName": "No One",
         "webhookPort": 51828,
         "cacheDirectory": "./.node-persist/storage",
         "pingInterval": 10000,
@@ -48,7 +50,9 @@ It can also receive webhooks sent by location-aware mobile apps (such as [Locati
 |----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `threshold`                | optional, in minutes, default: 15                                                                                                                                                            |
 | `anyoneSensor`             | optional, default: true                                                                                                                                                                      |
+| `anyoneSensorName`         | optional, default: "Anyone"                                                                                                                                                                  |
 | `nooneSensor`              | optional, default: false                                                                                                                                                                     |
+| `nooneSensorName`          | optional, default: "No One"                                                                                                                                                                  |
 | `webhookPort`              | optional, default: 51828                                                                                                                                                                     |
 | `cacheDirectory`           | optional, default: "./.node-persist/storage"                                                                                                                                                 |
 | `pingInterval`             | optional, in milliseconds, default: 10000, if set to -1 than the ping mechanism will not be used                                                                                             |
@@ -63,7 +67,7 @@ It can also receive webhooks sent by location-aware mobile apps (such as [Locati
 * When a Homekit enabled app looks up the state of a person, the last seen time for that persons device is compared to the current time minus ```threshold``` minutes, and if it is greater assumes that the person is active.
 
 # 'Anyone' and 'No One' sensors
-Some HomeKit automations need to happen when "anyone" is home or when "no one" is around, but the default Home app makes this difficult. homebridge-people can automatically create additional sensors called "Anyone" and "No One" to make these automations very easy.
+Some HomeKit automations need to happen when "anyone" is home or when "no one" is around, but the default Home app makes this difficult. homebridge-people can automatically create additional sensors called "Anyone" and "No One" (or custom names) to make these automations very easy.
 
 For example, you might want to run your "Arrive Home" scene when _Anyone_ gets home. Or run "Leave Home" when _No One_ is home.
 
