@@ -26,7 +26,9 @@ function PeoplePlatform(log, config){
     this.log = log;
     this.threshold = config['threshold'] || 15;
     this.anyoneSensor = config['anyoneSensor'] || true;
+    if (config['anyoneSensorName']) { SENSOR_ANYONE = config['anyoneSensorName']; }
     this.nooneSensor = config['nooneSensor'] || false;
+    if (config['nooneSensorName']) { SENSOR_NOONE = config['nooneSensorName']; }
     this.webhookPort = config["webhookPort"] || 51828;
     this.cacheDirectory = config["cacheDirectory"] || HomebridgeAPI.user.persistPath();
     this.pingInterval = config["pingInterval"] || 10000;
