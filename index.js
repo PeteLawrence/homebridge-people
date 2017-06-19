@@ -249,7 +249,7 @@ PeopleAccessory.prototype.setNewState = function(newState) {
     var oldState = this.stateCache;
     if (oldState != newState) {
         this.stateCache = newState;
-        this.service.getCharacteristic(Characteristic.OccupancyDetected).setValue(newState);
+        this.service.getCharacteristic(Characteristic.OccupancyDetected).updateValue(newState);
 
         if(this.platform.peopleAnyOneAccessory) {
             this.platform.peopleAnyOneAccessory.refreshState();
@@ -318,7 +318,7 @@ PeopleAllAccessory.prototype.getAnyoneStateFromCache = function() {
 }
 
 PeopleAllAccessory.prototype.refreshState = function() {
-    this.service.getCharacteristic(Characteristic.OccupancyDetected).setValue(this.getStateFromCache());
+    this.service.getCharacteristic(Characteristic.OccupancyDetected).updateValue(this.getStateFromCache());
 }
 
 PeopleAllAccessory.prototype.getServices = function() {
