@@ -17,34 +17,44 @@ It can also receive webhooks sent by location-aware mobile apps (such as [Locati
 "platforms": [
     {
         "platform": "People",
-        "threshold" : 15, // (optional, in minutes, default: 15)
-        "anyoneSensor" : true, // (optional, default: true)
-        "nooneSensor" : false, // (optional, default: false)
-        "webhookPort": 51828, // (optional, default: 51828)
-        "cacheDirectory": "./.node-persist/storage", // (optional, default: "./.node-persist/storage")
-        "pingInterval": 10000,  // (optional, in milliseconds, default: 10000, if set to -1 than the ping mechanism will not be used)
-        "ignoreReEnterExitSeconds": 0,  // (optional, in minutes, default: 0, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds)
+        "threshold" : 15,
+        "anyoneSensor" : true,
+        "nooneSensor" : false,
+        "webhookPort": 51828,
+        "cacheDirectory": "./.node-persist/storage",
+        "pingInterval": 10000,
+        "ignoreReEnterExitSeconds": 0,
         "people" : [
             {
-                "name" : "Pete", 
+                "name" : "Pete",
                 "target" : "PetesiPhone",
-                "threshold" : 15, // (optional, in minutes, default: used from platform
-                "pingInterval": 10000,  // (optional, in milliseconds, default: used from platform, if set to -1 than the ping mechanism will not be used)
-                "ignoreReEnterExitSeconds": 0  // (optional, in minutes, default: used from platform, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds)
+                "threshold" : 15,
+                "pingInterval": 10000,
+                "ignoreReEnterExitSeconds": 0
             },
             {
-                "name" : "Someone Else", 
+                "name" : "Someone Else",
                 "target" : "192.168.1.68",
-                "threshold" : 15, // (optional, in minutes, default: used from platform
-                "pingInterval": 10000,  // (optional, in milliseconds, default: used from platform, if set to -1 than the ping mechanism will not be used)
-                "ignoreReEnterExitSeconds": 0  // (optional, in minutes, default: used from platform, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds)
+                "threshold" : 15,
+                "pingInterval": 10000,
+                "ignoreReEnterExitSeconds": 0
             }
         ]
     }
 ]
 ```
 
-```target``` may be either a hostname or an IP address
+| Parameter                  | Note                                                                                                                                                                                         |
+|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `threshold`                | optional, in minutes, default: 15                                                                                                                                                            |
+| `anyoneSensor`             | optional, default: true                                                                                                                                                                      |
+| `nooneSensor`              | optional, default: false                                                                                                                                                                     |
+| `webhookPort`              | optional, default: 51828                                                                                                                                                                     |
+| `cacheDirectory`           | optional, default: "./.node-persist/storage"                                                                                                                                                 |
+| `pingInterval`             | optional, in milliseconds, default: 10000, if set to -1 than the ping mechanism will not be used                                                                                             |
+| `ignoreReEnterExitSeconds` | optional, in minutes, default: 0, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds |
+| `target`                   | may be either a hostname or IP address                                                                                                                                                       |
+| `name`                     | a human-readable name for your sensor                                                                                                                                                        |
 
 # How it works
 * When started homebridge-people will continually ping the IP address associated with each person defined in config.json if `pingInterval` is not set to `-1`.
