@@ -183,7 +183,10 @@ function PeopleAccessory(log, config, platform) {
 }
 
 PeopleAccessory.prototype.getState = function(callback) {
-  callback(null, this.stateCache);
+    if ( this.stateCache)
+        callback(null, Characteristic.OccupancyDetected.OCCUPANCY_DETECTED);
+    else
+        callback(null, Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
 }
 
 PeopleAccessory.prototype.initStateCache = function() {
@@ -293,7 +296,10 @@ function PeopleAllAccessory(log, name, platform) {
 }
 
 PeopleAllAccessory.prototype.getState = function(callback) {
-    callback(null, this.getStateFromCache());
+    if (this.getStateFromCache())
+        callback(null, Characteristic.OccupancyDetected.OCCUPANCY_DETECTED);
+    else
+        callback(null, Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
 }
 
 PeopleAllAccessory.prototype.getStateFromCache = function() {
