@@ -56,17 +56,17 @@ PeoplePlatform.prototype = {
             this.accessories.push(this.peopleNoOneAccessory);
         }
         callback(this.accessories);
-        
+
         this.startServer();
     },
-    
+
     startServer: function() {
         //
         // HTTP webserver code influenced by benzman81's great
         // homebridge-http-webhooks homebridge plugin.
         // https://github.com/benzman81/homebridge-http-webhooks
         //
-        
+
         // Start the HTTP webserver
         http.createServer((function(request, response) {
             var theUrl = request.url;
@@ -107,7 +107,7 @@ PeoplePlatform.prototype = {
                   var target = peopleAccessory.target
                   if(peopleAccessory.name.toLowerCase() === sensor) {
                     this.clearWebhookQueueForTarget(target);
-                    this.webhookQueue.push({"target": target, "newState": newState, "timeoutvar": setTimeout((function(){ 
+                    this.webhookQueue.push({"target": target, "newState": newState, "timeoutvar": setTimeout((function(){
                         this.runWebhookFromQueueForTarget(target);
                     }).bind(this),  peopleAccessory.ignoreReEnterExitSeconds * 1000)});
                     break;
@@ -120,7 +120,7 @@ PeoplePlatform.prototype = {
         }).bind(this)).listen(this.webhookPort);
         this.log("WebHook: Started server on port '%s'.", this.webhookPort);
     },
-    
+
     clearWebhookQueueForTarget: function(target) {
         for (var i = 0; i < this.webhookQueue.length; i++) {
             var webhookQueueEntry = this.webhookQueue[i];
@@ -144,7 +144,7 @@ PeoplePlatform.prototype = {
             }
         }
     },
-    
+
     getPeopleAccessoryForTarget: function(target) {
         for(var i = 0; i < this.peopleAccessories.length; i++){
             var peopleAccessory = this.peopleAccessories[i];
@@ -169,12 +169,12 @@ function PeopleAccessory(log, config, platform) {
     this.pingInterval = config['pingInterval'] || this.platform.pingInterval;
     this.ignoreReEnterExitSeconds = config['ignoreReEnterExitSeconds'] || this.platform.ignoreReEnterExitSeconds;
     this.stateCache = false;
-    
+
     this.service = new Service.OccupancySensor(this.name);
     this.service
         .getCharacteristic(Characteristic.OccupancyDetected)
         .on('get', this.getState.bind(this));
-  
+
     this.initStateCache();
 
     if(this.pingInterval > -1) {
@@ -182,11 +182,15 @@ function PeopleAccessory(log, config, platform) {
     }
 }
 
+PeopleAccessory.encodeState = function(state) {
+  if (state)
+      return Characteristic.OccupancyDetected.OCCUPANCY_DETECTED;
+  else
+      return Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED;
+}
+
 PeopleAccessory.prototype.getState = function(callback) {
-    if ( this.stateCache)
-        callback(null, Characteristic.OccupancyDetected.OCCUPANCY_DETECTED);
-    else
-        callback(null, Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
+    callback(null, PeopleAccessory.encodeState(this.stateCache));
 }
 
 PeopleAccessory.prototype.initStateCache = function() {
@@ -252,16 +256,16 @@ PeopleAccessory.prototype.setNewState = function(newState) {
     var oldState = this.stateCache;
     if (oldState != newState) {
         this.stateCache = newState;
-        this.service.getCharacteristic(Characteristic.OccupancyDetected).updateValue(newState);
+        this.service.getCharacteristic(Characteristic.OccupancyDetected).updateValue(PeopleAccessory.encodeState(newState));
 
         if(this.platform.peopleAnyOneAccessory) {
             this.platform.peopleAnyOneAccessory.refreshState();
         }
-        
+
         if(this.platform.peopleNoOneAccessory) {
             this.platform.peopleNoOneAccessory.refreshState();
         }
-        
+
         var lastSuccessfulPingMoment = "none";
         var lastWebhookMoment = "none";
         var lastSuccessfulPing = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
@@ -288,7 +292,7 @@ function PeopleAllAccessory(log, name, platform) {
     this.log = log;
     this.name = name;
     this.platform = platform;
-    
+
     this.service = new Service.OccupancySensor(this.name);
     this.service
         .getCharacteristic(Characteristic.OccupancyDetected)
@@ -296,10 +300,7 @@ function PeopleAllAccessory(log, name, platform) {
 }
 
 PeopleAllAccessory.prototype.getState = function(callback) {
-    if (this.getStateFromCache())
-        callback(null, Characteristic.OccupancyDetected.OCCUPANCY_DETECTED);
-    else
-        callback(null, Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
+  callback(null, PeopleAccessory.encodeState(this.getStateFromCache()));
 }
 
 PeopleAllAccessory.prototype.getStateFromCache = function() {
@@ -324,7 +325,7 @@ PeopleAllAccessory.prototype.getAnyoneStateFromCache = function() {
 }
 
 PeopleAllAccessory.prototype.refreshState = function() {
-    this.service.getCharacteristic(Characteristic.OccupancyDetected).updateValue(this.getStateFromCache());
+    this.service.getCharacteristic(Characteristic.OccupancyDetected).updateValue(PeopleAccessory.encodeState(this.getStateFromCache()));
 }
 
 PeopleAllAccessory.prototype.getServices = function() {
