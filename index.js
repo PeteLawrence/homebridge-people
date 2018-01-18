@@ -25,7 +25,7 @@ module.exports = function(homebridge) {
 function PeoplePlatform(log, config){
     this.log = log;
     this.threshold = config['threshold'] || 15;
-    this.anyoneSensor = config['anyoneSensor'] || true;
+    this.anyoneSensor = config['anyoneSensor'] || false;
     this.nooneSensor = config['nooneSensor'] || false;
     this.webhookPort = config["webhookPort"] || 51828;
     this.cacheDirectory = config["cacheDirectory"] || HomebridgeAPI.user.persistPath();
