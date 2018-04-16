@@ -6,12 +6,14 @@ var url = require('url');
 var DEFAULT_REQUEST_TIMEOUT = 10000;
 var SENSOR_ANYONE = 'Anyone';
 var SENSOR_NOONE = 'No One';
+var FakeGatoHistoryService;
 
 var Service, Characteristic, HomebridgeAPI;
 module.exports = function(homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
     HomebridgeAPI = homebridge;
+    FakeGatoHistoryService = require('fakegato-history')(homebridge);
 
     homebridge.registerPlatform("homebridge-people", "People", PeoplePlatform);
     homebridge.registerAccessory("homebridge-people", "PeopleAccessory", PeopleAccessory);
@@ -170,10 +172,81 @@ function PeopleAccessory(log, config, platform) {
     this.ignoreReEnterExitSeconds = config['ignoreReEnterExitSeconds'] || this.platform.ignoreReEnterExitSeconds;
     this.stateCache = false;
 
-    this.service = new Service.OccupancySensor(this.name);
+    class LastActivationCharacteristic extends Characteristic {
+        constructor(accessory) {
+            super('LastActivation', 'E863F11A-079E-48FF-8F27-9C2605A29F52');
+            this.setProps({
+                format: Characteristic.Formats.UINT32,
+                unit: Characteristic.Units.SECONDS,
+                perms: [
+                    Characteristic.Perms.READ,
+                    Characteristic.Perms.NOTIFY
+                ]
+            });
+        }
+    }
+
+    class SensitivityCharacteristic extends Characteristic {
+        constructor(accessory) {
+            super('Sensitivity', 'E863F120-079E-48FF-8F27-9C2605A29F52');
+            this.setProps({
+                format: Characteristic.Formats.UINT8,
+                minValue: 0,
+                maxValue: 7,
+                validValues: [0, 4, 7],
+                perms: [
+                    Characteristic.Perms.READ,
+                    Characteristic.Perms.NOTIFY,
+                    Characteristic.Perms.WRITE
+                ]
+            });
+        }
+    }
+
+    class DurationCharacteristic extends Characteristic {
+        constructor(accessory) {
+            super('Duration', 'E863F12D-079E-48FF-8F27-9C2605A29F52');
+            this.setProps({
+                format: Characteristic.Formats.UINT16,
+                unit: Characteristic.Units.SECONDS,
+                minValue: 5,
+                maxValue: 15 * 3600,
+                validValues: [
+                    5, 10, 20, 30,
+                    1 * 60, 2 * 60, 3 * 60, 5 * 60, 10 * 60, 20 * 60, 30 * 60,
+                    1 * 3600, 2 * 3600, 3 * 3600, 5 * 3600, 10 * 3600, 12 * 3600, 15 * 3600
+                ],
+                perms: [
+                    Characteristic.Perms.READ,
+                    Characteristic.Perms.NOTIFY,
+                    Characteristic.Perms.WRITE
+                ]
+            });
+        }
+    }
+
+    this.service = new Service.MotionSensor(this.name);
     this.service
-        .getCharacteristic(Characteristic.OccupancyDetected)
+        .getCharacteristic(Characteristic.MotionDetected)
         .on('get', this.getState.bind(this));
+
+    this.service.addCharacteristic(LastActivationCharacteristic);
+    this.service.addCharacteristic(SensitivityCharacteristic);
+    this.service.addCharacteristic(DurationCharacteristic);
+
+    this.accessoryService = new Service.AccessoryInformation;
+    this.accessoryService
+        .setCharacteristic(Characteristic.Name, this.name)
+        .setCharacteristic(Characteristic.SerialNumber, "hps-"+this.name.toLowerCase())
+        .setCharacteristic(Characteristic.Manufacturer, "Elgato");
+
+    this.historyService = new FakeGatoHistoryService("motion", {
+            displayName: this.name,
+            log: this.log
+        },
+        {
+            size: 40320, storage:'fs', disableTimer: true
+        });
 
     this.initStateCache();
 
@@ -191,6 +264,11 @@ PeopleAccessory.encodeState = function(state) {
 
 PeopleAccessory.prototype.getState = function(callback) {
     callback(null, PeopleAccessory.encodeState(this.stateCache));
+}
+
+PeopleAccessory.prototype.identify = function(callback) {
+    this.log("Identify: "+this.name);
+    callback();
 }
 
 PeopleAccessory.prototype.initStateCache = function() {
@@ -256,7 +334,7 @@ PeopleAccessory.prototype.setNewState = function(newState) {
     var oldState = this.stateCache;
     if (oldState != newState) {
         this.stateCache = newState;
-        this.service.getCharacteristic(Characteristic.OccupancyDetected).updateValue(PeopleAccessory.encodeState(newState));
+        this.service.getCharacteristic(Characteristic.MotionDetected).updateValue(PeopleAccessory.encodeState(newState));
 
         if(this.platform.peopleAnyOneAccessory) {
             this.platform.peopleAnyOneAccessory.refreshState();
@@ -276,12 +354,29 @@ PeopleAccessory.prototype.setNewState = function(newState) {
         if(lastWebhook) {
             lastWebhookMoment = moment(lastWebhook).format();
         }
+
+        this.historyService.addEntry(
+            {
+                time: new Date().getTime() / 1000,
+                status: (newState)?1:0
+            });
         this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
     }
 }
 
 PeopleAccessory.prototype.getServices = function() {
-    return [this.service];
+
+    var servicesList = [this.service];
+
+    if(this.historyService) {
+        servicesList.push(this.historyService)
+    }
+    if(this.accessoryService) {
+        servicesList.push(this.accessoryService)
+    }
+
+    return servicesList;
+
 }
 
 // #######################
@@ -297,10 +392,21 @@ function PeopleAllAccessory(log, name, platform) {
     this.service
         .getCharacteristic(Characteristic.OccupancyDetected)
         .on('get', this.getState.bind(this));
+
+    this.accessoryService = new Service.AccessoryInformation;
+    this.accessoryService
+        .setCharacteristic(Characteristic.Name, this.name)
+        .setCharacteristic(Characteristic.SerialNumber, (this.name === SENSOR_NOONE)?"hps-noone":"hps-all")
+        .setCharacteristic(Characteristic.Manufacturer, "Elgato");
 }
 
 PeopleAllAccessory.prototype.getState = function(callback) {
   callback(null, PeopleAccessory.encodeState(this.getStateFromCache()));
+}
+
+PeopleAllAccessory.prototype.identify = function(callback) {
+    this.log("Identify: "+this.name);
+    callback();
 }
 
 PeopleAllAccessory.prototype.getStateFromCache = function() {
@@ -329,5 +435,5 @@ PeopleAllAccessory.prototype.refreshState = function() {
 }
 
 PeopleAllAccessory.prototype.getServices = function() {
-    return [this.service];
+    return [this.service, this.accessoryService];
 }
