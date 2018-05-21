@@ -7,6 +7,7 @@ var DEFAULT_REQUEST_TIMEOUT = 10000;
 var SENSOR_ANYONE = 'Anyone';
 var SENSOR_NOONE = 'No One';
 var FakeGatoHistoryService;
+const EPOCH_OFFSET = 978307200;
 
 var Service, Characteristic, HomebridgeAPI;
 module.exports = function(homebridge) {
@@ -231,7 +232,16 @@ function PeopleAccessory(log, config, platform) {
         .on('get', this.getState.bind(this));
 
     this.service.addCharacteristic(LastActivationCharacteristic);
+    this.service
+        .getCharacteristic(LastActivationCharacteristic)
+        .on('get', this.getLastActivation.bind(this));
+
+
     this.service.addCharacteristic(SensitivityCharacteristic);
+    this.service
+        .getCharacteristic(SensitivityCharacteristic)
+        .on('get', this.getSensitivity.bind(this));
+
     this.service.addCharacteristic(DurationCharacteristic);
 
     this.accessoryService = new Service.AccessoryInformation;
@@ -264,6 +274,19 @@ PeopleAccessory.encodeState = function(state) {
 
 PeopleAccessory.prototype.getState = function(callback) {
     callback(null, PeopleAccessory.encodeState(this.stateCache));
+}
+
+PeopleAccessory.prototype.getLastActivation = function(callback) {
+    var lastSeenUnix = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
+    if (lastSeenUnix) {
+        var lastSeenMoment = moment(lastSeenUnix).unix();
+        this.log("LM: "+lastSeenUnix);
+        callback(null, lastSeenMoment);
+    }
+}
+
+PeopleAccessory.prototype.getSensitivity = function(callback) {
+    callback(null, 4);
 }
 
 PeopleAccessory.prototype.identify = function(callback) {
@@ -357,7 +380,7 @@ PeopleAccessory.prototype.setNewState = function(newState) {
 
         this.historyService.addEntry(
             {
-                time: new Date().getTime() / 1000,
+                time: moment().unix(),
                 status: (newState)?1:0
             });
         this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
