@@ -240,9 +240,16 @@ function PeopleAccessory(log, config, platform) {
     this.service.addCharacteristic(SensitivityCharacteristic);
     this.service
         .getCharacteristic(SensitivityCharacteristic)
-        .on('get', this.getSensitivity.bind(this));
+        .on('get', function(callback){
+            callback(null, 4);
+        }.bind(this));
 
     this.service.addCharacteristic(DurationCharacteristic);
+    this.service
+        .getCharacteristic(DurationCharacteristic)
+        .on('get', function(callback){
+            callback(null, 5);
+        }.bind(this));
 
     this.accessoryService = new Service.AccessoryInformation;
     this.accessoryService
@@ -255,7 +262,7 @@ function PeopleAccessory(log, config, platform) {
             log: this.log
         },
         {
-            size: 40320, storage:'fs', disableTimer: true
+            storage:'fs', disableTimer: true
         });
 
     this.initStateCache();
@@ -280,13 +287,8 @@ PeopleAccessory.prototype.getLastActivation = function(callback) {
     var lastSeenUnix = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
     if (lastSeenUnix) {
         var lastSeenMoment = moment(lastSeenUnix).unix();
-        this.log("LM: "+lastSeenUnix);
-        callback(null, lastSeenMoment);
+        callback(null, lastSeenMoment - this.historyService.getInitialTime());
     }
-}
-
-PeopleAccessory.prototype.getSensitivity = function(callback) {
-    callback(null, 4);
 }
 
 PeopleAccessory.prototype.identify = function(callback) {
