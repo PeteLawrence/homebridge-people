@@ -382,7 +382,7 @@ PeopleAccessory.prototype.setNewState = function(newState) {
 
         this.historyService.addEntry(
             {
-                time: moment().unix(),
+                time: new Date().getTime() / 1000,
                 status: (newState)?1:0
             });
         this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
