@@ -262,7 +262,7 @@ function PeopleAccessory(log, config, platform) {
             log: this.log
         },
         {
-            storage:'fs', disableTimer: true
+            storage:'fs'
         });
 
     this.initStateCache();
@@ -379,11 +379,11 @@ PeopleAccessory.prototype.setNewState = function(newState) {
         if(lastWebhook) {
             lastWebhookMoment = moment(lastWebhook).format();
         }
-
+        
         this.historyService.addEntry(
             {
-                time: new Date().getTime() / 1000,
-                status: (newState)?1:0
+                time: (newState) ? moment().unix() : moment(lastSuccessfulPing).unix(),
+                status: (newState) ? 1 : 0
             });
         this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
     }
