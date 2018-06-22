@@ -32,9 +32,18 @@ function PeoplePlatform(log, config){
     this.pingInterval = config["pingInterval"] || 10000;
     this.ignoreReEnterExitSeconds = config["ignoreReEnterExitSeconds"] || 0;
     this.people = config['people'];
+    this.roomName = config["roomName"] || "";
     this.storage = require('node-persist');
     this.storage.initSync({dir:this.cacheDirectory});
     this.webhookQueue = [];
+
+    if (this.roomName) {
+        SENSOR_ANYONE = 'Anyone' + " @ " + this.roomName;
+        SENSOR_NOONE = 'No One' + " @ " +  this.roomName;
+    } else {
+        SENSOR_ANYONE = 'Anyone';
+        SENSOR_NOONE = 'No One';
+    }
 }
 
 PeoplePlatform.prototype = {

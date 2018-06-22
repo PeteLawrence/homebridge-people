@@ -50,6 +50,8 @@ It can also receive webhooks sent by location-aware mobile apps (such as [Locati
 | `anyoneSensor`             | optional, default: true                                                                                                                                                                      |
 | `nooneSensor`              | optional, default: false                                                                                                                                                                     |
 | `webhookPort`              | optional, default: 51828                                                                                                                                                                     |
+| `roomName`                 | optional, add a room name to AnyOne and No One sensors, default: ""                                                                                                                                                                        |
+
 | `cacheDirectory`           | optional, default: "./.node-persist/storage"                                                                                                                                                 |
 | `pingInterval`             | optional, in milliseconds, default: 10000, if set to -1 than the ping mechanism will not be used                                                                                             |
 | `ignoreReEnterExitSeconds` | optional, in minutes, default: 0, if set to 0 than every enter/exit will trigger state change otherwise the state will only change if no re-enter/exit occurs in specified number of seconds |
