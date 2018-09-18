@@ -81,6 +81,8 @@ Apps like [Locative](https://my.locative.io) range for iBeacons and geofences by
 
 To use this plugin with one of these apps, configure your region and set the HTTP push to `http://youripaddress:51828/?sensor=[name]&state=true` for arrival, and `http://youripaddress:51828/?sensor=[name]&state=false` for departure, where `[name]` is the name of the person the device belongs to as specified in your config under `people`. *Note:* you may need to enable port forwarding on your router to accomplish this.
 
+You can also check if a preson at home by using `http://youripaddress:51828/?sensor=[name]`.
+
 By default homebridge-people listens on port 51828 for updates.  This can be changed by setting `webhookPort` in your homebridge `config.json`.
 
 # Notes
