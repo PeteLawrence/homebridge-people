@@ -94,8 +94,25 @@ PeoplePlatform.prototype = {
                 this.log(errorText);
                 response.write(errorText);
                 response.end();
-              }
-              else {
+               } else if(theUrlParams.sensor && !theUrlParams.state) {
+                 var sensor = theUrlParams.sensor.toLowerCase();
+                 var gState = false;
+                 var isFound = false;
+                 for(var i = 0; i < this.peopleAccessories.length; i++){
+                   var peopleAccessory = this.peopleAccessories[i];
+                   if(peopleAccessory.name.toLowerCase() === sensor) {
+                     gState = peopleAccessory.stateCache;
+                     isFound = true;
+                     break;
+                   }
+                 }
+                 var responseBody = {
+                   success: isFound,
+                   state: gState
+                   };
+                 response.write(JSON.stringify(responseBody));
+                 response.end();
+                } else {
                 var sensor = theUrlParams.sensor.toLowerCase();
                 var newState = (theUrlParams.state == "true");
                 this.log('Received hook for ' + sensor + ' -> ' + newState);
