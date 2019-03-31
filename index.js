@@ -5,7 +5,6 @@ var http = require('http');
 var url = require('url');
 var DEFAULT_REQUEST_TIMEOUT = 10000;
 var SENSOR_ANYONE = 'Anyone';
-var SENSOR_NOONE = 'No One';
 var SWITCH_GUEST_MODE = 'Guest Mode';
 
 var Service, Characteristic, HomebridgeAPI;
@@ -17,6 +16,7 @@ module.exports = function(homebridge) {
     homebridge.registerPlatform("homebridge-people", "People", PeoplePlatform);
     homebridge.registerAccessory("homebridge-people", "PeopleAccessory", PeopleAccessory);
     homebridge.registerAccessory("homebridge-people", "PeopleAllAccessory", PeopleAllAccessory);
+    homebridge.registerAccessory("homebridge-dummy", "GuestModeSwitch", GuestModeSwitch);
 }
 
 // #######################
@@ -27,7 +27,6 @@ function PeoplePlatform(log, config){
     this.log = log;
     this.threshold = config['threshold'] || 15;
     this.anyoneSensor = config['anyoneSensor'] || true;
-    this.nooneSensor = config['nooneSensor'] || false;
     this.webhookPort = config["webhookPort"] || 51828;
     this.cacheDirectory = config["cacheDirectory"] || HomebridgeAPI.user.persistPath();
     this.pingInterval = config["pingInterval"] || 10000;
@@ -43,20 +42,19 @@ PeoplePlatform.prototype = {
     accessories: function(callback) {
         this.accessories = [];
         this.peopleAccessories = [];
+
         for(var i = 0; i < this.people.length; i++){
             var peopleAccessory = new PeopleAccessory(this.log, this.people[i], this);
             this.accessories.push(peopleAccessory);
             this.peopleAccessories.push(peopleAccessory);
         }
+        
         if(this.anyoneSensor) {
             this.peopleAnyOneAccessory = new PeopleAllAccessory(this.log, SENSOR_ANYONE, this);
             this.accessories.push(this.peopleAnyOneAccessory);
         }
-        if(this.nooneSensor) {
-            this.peopleNoOneAccessory = new PeopleAllAccessory(this.log, SENSOR_NOONE, this);
-            this.accessories.push(this.peopleNoOneAccessory);
-        }
-        var guestModeSwitch = new DummySwitch(this.log, SWITCH_GUEST_MODE, this);
+        
+        var guestModeSwitch = new GuestModeSwitch(this.log, SWITCH_GUEST_MODE, this);
         this.accessories.push(guestModeSwitch);
 
         callback(this.accessories);
@@ -258,6 +256,7 @@ PeopleAccessory.prototype.successfulPingOccurredAfterWebhook = function() {
 
 PeopleAccessory.prototype.setNewState = function(newState) {
     var oldState = this.stateCache;
+
     if (oldState != newState) {
         this.stateCache = newState;
         this.service.getCharacteristic(Characteristic.OccupancyDetected).updateValue(PeopleAccessory.encodeState(newState));
@@ -266,20 +265,20 @@ PeopleAccessory.prototype.setNewState = function(newState) {
             this.platform.peopleAnyOneAccessory.refreshState();
         }
 
-        if(this.platform.peopleNoOneAccessory) {
-            this.platform.peopleNoOneAccessory.refreshState();
-        }
-
         var lastSuccessfulPingMoment = "none";
         var lastWebhookMoment = "none";
         var lastSuccessfulPing = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
+        
         if(lastSuccessfulPing) {
             lastSuccessfulPingMoment = moment(lastSuccessfulPing).format();
         }
+        
         var lastWebhook = this.platform.storage.getItemSync('lastWebhook_' + this.target);
+        
         if(lastWebhook) {
             lastWebhookMoment = moment(lastWebhook).format();
         }
+        
         this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
     }
 }
@@ -308,13 +307,7 @@ PeopleAllAccessory.prototype.getState = function(callback) {
 }
 
 PeopleAllAccessory.prototype.getStateFromCache = function() {
-    var isAnyoneActive = this.getAnyoneStateFromCache();
-    if(this.name === SENSOR_NOONE) {
-        return !isAnyoneActive;
-    }
-    else {
-        return isAnyoneActive;
-    }
+    return this.getAnyoneStateFromCache();
 }
 
 PeopleAllAccessory.prototype.getAnyoneStateFromCache = function() {
@@ -337,10 +330,10 @@ PeopleAllAccessory.prototype.getServices = function() {
 }
 
 // #######################
-// DummySwitch
+// GuestModeSwitch
 // #######################
 
-function DummySwitch(log, name, platform) {
+function GuestModeSwitch(log, name, platform) {
     this.log = log;
     this.name = name;
     this.platform = platform;
@@ -357,11 +350,11 @@ function DummySwitch(log, name, platform) {
     }
 }
 
-DummySwitch.prototype.setOn = function(on, callback) {
+GuestModeSwitch.prototype.setOn = function(on, callback) {
     this.storage.setItemSync(this.name, on);
     callback();
 }
 
-DummySwitch.prototype.getServices = function() {
+GuestModeSwitch.prototype.getServices = function() {
     return [this.service];
 }
