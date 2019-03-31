@@ -13,10 +13,10 @@ module.exports = function(homebridge) {
     Characteristic = homebridge.hap.Characteristic;
     HomebridgeAPI = homebridge;
 
-    homebridge.registerPlatform("homebridge-people", "People", PeoplePlatform);
-    homebridge.registerAccessory("homebridge-people", "PeopleAccessory", PeopleAccessory);
-    homebridge.registerAccessory("homebridge-people", "PeopleAllAccessory", PeopleAllAccessory);
-    homebridge.registerAccessory("homebridge-dummy", "GuestModeSwitch", GuestModeSwitch);
+    homebridge.registerPlatform("homebridge-people-guest-mode", "People", PeoplePlatform);
+    homebridge.registerAccessory("homebridge-people-guest-mode", "PeopleAccessory", PeopleAccessory);
+    homebridge.registerAccessory("homebridge-people-guest-mode", "PeopleAllAccessory", PeopleAllAccessory);
+    homebridge.registerAccessory("homebridge-people-guest-mode", "GuestModeSwitch", GuestModeSwitch);
 }
 
 // #######################
@@ -26,7 +26,6 @@ module.exports = function(homebridge) {
 function PeoplePlatform(log, config){
     this.log = log;
     this.threshold = config['threshold'] || 15;
-    this.anyoneSensor = config['anyoneSensor'] || true;
     this.webhookPort = config["webhookPort"] || 51828;
     this.cacheDirectory = config["cacheDirectory"] || HomebridgeAPI.user.persistPath();
     this.pingInterval = config["pingInterval"] || 10000;
@@ -48,14 +47,12 @@ PeoplePlatform.prototype = {
             this.accessories.push(peopleAccessory);
             this.peopleAccessories.push(peopleAccessory);
         }
+
+        this.peopleAnyOneAccessory = new PeopleAllAccessory(this.log, SENSOR_ANYONE, this);
+        this.accessories.push(this.peopleAnyOneAccessory);
         
-        if(this.anyoneSensor) {
-            this.peopleAnyOneAccessory = new PeopleAllAccessory(this.log, SENSOR_ANYONE, this);
-            this.accessories.push(this.peopleAnyOneAccessory);
-        }
-        
-        var guestModeSwitch = new GuestModeSwitch(this.log, SWITCH_GUEST_MODE, this);
-        this.accessories.push(guestModeSwitch);
+        this.guestModeSwitch = new GuestModeSwitch(this.log, SWITCH_GUEST_MODE, this);
+        this.accessories.push(this.guestModeSwitch);
 
         callback(this.accessories);
 
