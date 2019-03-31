@@ -6,6 +6,7 @@ var url = require('url');
 var DEFAULT_REQUEST_TIMEOUT = 10000;
 var SENSOR_ANYONE = 'Anyone';
 var SENSOR_NOONE = 'No One';
+var SWITCH_GUEST_MODE = 'Guest Mode';
 
 var Service, Characteristic, HomebridgeAPI;
 module.exports = function(homebridge) {
@@ -55,6 +56,9 @@ PeoplePlatform.prototype = {
             this.peopleNoOneAccessory = new PeopleAllAccessory(this.log, SENSOR_NOONE, this);
             this.accessories.push(this.peopleNoOneAccessory);
         }
+        var guestModeSwitch = new DummySwitch(this.log, SWITCH_GUEST_MODE, this);
+        this.accessories.push(guestModeSwitch);
+        
         callback(this.accessories);
 
         this.startServer();
@@ -330,4 +334,25 @@ PeopleAllAccessory.prototype.refreshState = function() {
 
 PeopleAllAccessory.prototype.getServices = function() {
     return [this.service];
+}
+
+// #######################
+// DummySwitch
+// #######################
+
+function DummySwitch(log, name, platform) {
+    this.log = log;
+    this.name = name;
+    this.platform = platform;
+
+    this.service = new Service.Switch(this.name);
+    this.service.getCharacteristic(Characteristic.On)
+        .on('set', this.setOn.bind(this));
+  
+      var cachedState = this.storage.getItemSync(this.name);
+      if((cachedState === undefined) || (cachedState === false)) {
+          this._service.setCharacteristic(Characteristic.On, false);
+      } else {
+          this._service.setCharacteristic(Characteristic.On, true);
+      }
 }
