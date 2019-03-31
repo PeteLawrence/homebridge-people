@@ -58,7 +58,7 @@ PeoplePlatform.prototype = {
         }
         var guestModeSwitch = new DummySwitch(this.log, SWITCH_GUEST_MODE, this);
         this.accessories.push(guestModeSwitch);
-        
+
         callback(this.accessories);
 
         this.startServer();
@@ -349,10 +349,19 @@ function DummySwitch(log, name, platform) {
     this.service.getCharacteristic(Characteristic.On)
         .on('set', this.setOn.bind(this));
   
-      var cachedState = this.storage.getItemSync(this.name);
-      if((cachedState === undefined) || (cachedState === false)) {
-          this._service.setCharacteristic(Characteristic.On, false);
-      } else {
-          this._service.setCharacteristic(Characteristic.On, true);
-      }
+    var cachedState = this.storage.getItemSync(this.name);
+    if((cachedState === undefined) || (cachedState === false)) {
+        this._service.setCharacteristic(Characteristic.On, false);
+    } else {
+        this._service.setCharacteristic(Characteristic.On, true);
+    }
+}
+
+DummySwitch.prototype.setOn = function(on, callback) {
+    this.storage.setItemSync(this.name, on);
+    callback();
+}
+
+DummySwitch.prototype.getServices = function() {
+    return [this.service];
 }
