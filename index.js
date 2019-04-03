@@ -308,6 +308,10 @@ PeopleAllAccessory.prototype.getStateFromCache = function() {
 }
 
 PeopleAllAccessory.prototype.getAnyoneStateFromCache = function() {
+    if(this.platform.GuestModeSwitch.getCharacteristic(Characteristic.On)) {
+        return true;
+    }
+    
     for(var i = 0; i < this.platform.peopleAccessories.length; i++){
         var peopleAccessory = this.platform.peopleAccessories[i];
         var isActive = peopleAccessory.stateCache;
@@ -339,16 +343,16 @@ function GuestModeSwitch(log, name, platform) {
     this.service.getCharacteristic(Characteristic.On)
         .on('set', this.setOn.bind(this));
   
-    var cachedState = this.storage.getItemSync(this.name);
+    var cachedState = this.platform.storage.getItemSync(this.name);
     if((cachedState === undefined) || (cachedState === false)) {
-        this._service.setCharacteristic(Characteristic.On, false);
+        this.service.setCharacteristic(Characteristic.On, false);
     } else {
-        this._service.setCharacteristic(Characteristic.On, true);
+        this.service.setCharacteristic(Characteristic.On, true);
     }
 }
 
 GuestModeSwitch.prototype.setOn = function(on, callback) {
-    this.storage.setItemSync(this.name, on);
+    this.platform.storage.setItemSync(this.name, on);
     callback();
 }
 
