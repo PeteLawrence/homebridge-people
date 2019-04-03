@@ -42,6 +42,9 @@ PeoplePlatform.prototype = {
         this.accessories = [];
         this.peopleAccessories = [];
 
+        this.guestModeSwitch = new GuestModeSwitch(this.log, SWITCH_GUEST_MODE, this);
+        this.accessories.push(this.guestModeSwitch);
+
         for(var i = 0; i < this.people.length; i++){
             var peopleAccessory = new PeopleAccessory(this.log, this.people[i], this);
             this.accessories.push(peopleAccessory);
@@ -50,9 +53,6 @@ PeoplePlatform.prototype = {
 
         this.peopleAnyOneAccessory = new PeopleAllAccessory(this.log, SENSOR_ANYONE, this);
         this.accessories.push(this.peopleAnyOneAccessory);
-        
-        this.guestModeSwitch = new GuestModeSwitch(this.log, SWITCH_GUEST_MODE, this);
-        this.accessories.push(this.guestModeSwitch);
 
         callback(this.accessories);
 
@@ -345,9 +345,9 @@ function GuestModeSwitch(log, name, platform) {
   
     var cachedState = this.storage.getItemSync(this.name);
     if ((cachedState === undefined) || (cachedState === false)) {
-        this._service.setCharacteristic(Characteristic.On, false);
+        this.service.setCharacteristic(Characteristic.On, false);
     } else {
-        this._service.setCharacteristic(Characteristic.On, true);
+        this.service.setCharacteristic(Characteristic.On, true);
     }
 }
 
