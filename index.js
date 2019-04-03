@@ -307,11 +307,7 @@ PeopleAllAccessory.prototype.getStateFromCache = function() {
     return this.getAnyoneStateFromCache();
 }
 
-PeopleAllAccessory.prototype.getAnyoneStateFromCache = function() {
-    if(this.platform.GuestModeSwitch.getCharacteristic(Characteristic.On)) {
-        return true;
-    }
-    
+PeopleAllAccessory.prototype.getAnyoneStateFromCache = function() {    
     for(var i = 0; i < this.platform.peopleAccessories.length; i++){
         var peopleAccessory = this.platform.peopleAccessories[i];
         var isActive = peopleAccessory.stateCache;
