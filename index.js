@@ -340,11 +340,15 @@ function GuestModeSwitch(log, name, platform) {
     this.service.getCharacteristic(Characteristic.On)
         .on('set', this.setOn.bind(this));
   
+    this.service.setCharacteristic(Characteristic.On, this.getStateFromCache());
+}
+
+GuestModeSwitch.prototype.getStateFromCache = function() {
     var cachedState = this.platform.storage.getItemSync(this.name);
     if((cachedState === undefined) || (cachedState === false)) {
-        this.service.setCharacteristic(Characteristic.On, false);
+        return false;
     } else {
-        this.service.setCharacteristic(Characteristic.On, true);
+        return true;
     }
 }
 
