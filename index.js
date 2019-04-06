@@ -48,11 +48,11 @@ PeoplePlatform.prototype = {
             this.peopleAccessories.push(peopleAccessory);
         }
 
-        this.peopleAnyOneAccessory = new PeopleAllAccessory(this.log, SENSOR_ANYONE, this);
-        this.accessories.push(this.peopleAnyOneAccessory);
-        
         this.guestModeSwitch = new GuestModeSwitch(this.log, SWITCH_GUEST_MODE, this);
         this.accessories.push(this.guestModeSwitch);
+
+        this.peopleAnyOneAccessory = new PeopleAllAccessory(this.log, SENSOR_ANYONE, this);
+        this.accessories.push(this.peopleAnyOneAccessory);
 
         callback(this.accessories);
 
@@ -308,7 +308,7 @@ PeopleAllAccessory.prototype.getStateFromCache = function() {
 }
 
 PeopleAllAccessory.prototype.getAnyoneStateFromCache = function() {
-    if (this.platform.guestModeSwitch.getStateFromCache()) {
+    if (this.platform.guestModeSwitch && this.platform.guestModeSwitch.getStateFromCache()) {
         return true;
     }
 
@@ -357,7 +357,11 @@ GuestModeSwitch.prototype.getStateFromCache = function() {
 
 GuestModeSwitch.prototype.setOn = function(on, callback) {
     this.platform.storage.setItemSync(this.name, on);
-    this.platform.peopleAnyOneAccessory.refreshState();
+
+    if(this.platform.peopleAnyOneAccessory) {
+        this.platform.peopleAnyOneAccessory.refreshState();
+    }
+
     callback();
 }
 
