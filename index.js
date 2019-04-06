@@ -308,6 +308,9 @@ PeopleAllAccessory.prototype.getStateFromCache = function() {
 }
 
 PeopleAllAccessory.prototype.getAnyoneStateFromCache = function() {
+    if (this.platform.guestModeSwitch.getStateFromCache()) {
+        return true;
+    }
 
     for(var i = 0; i < this.platform.peopleAccessories.length; i++){
         var peopleAccessory = this.platform.peopleAccessories[i];
@@ -354,6 +357,7 @@ GuestModeSwitch.prototype.getStateFromCache = function() {
 
 GuestModeSwitch.prototype.setOn = function(on, callback) {
     this.platform.storage.setItemSync(this.name, on);
+    this.platform.peopleAnyOneAccessory.refreshState();
     callback();
 }
 
