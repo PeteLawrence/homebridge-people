@@ -1,0 +1,100 @@
+{
+  "pluginAlias": "People",
+  "pluginType": "platform",
+  "singular": true,
+  "headerDisplay": "This is a plugin for [homebridge](https://github.com/nfarina/homebridge). It monitors who is at home, based on their smartphone being seen on the network recently. It can also receive webhooks sent by location-aware mobile apps (such as [Locative](https://my.locative.io), which can use iBeacons and geofencing to provide faster and more accurate location information.",
+  "footerDisplay": "Visit the [Pair](https://github.com/PeteLawrence/homebridge-people#pairing-with-a-location-aware-mobile-app) section of the [Project Page](https://github.com/PeteLawrence/homebridge-people), if you need help with pairing with a location-aware mobile app.",
+  "schema": {
+    "type": "object",
+    "properties": {
+        "people": {
+            "type": "array",
+            "title": "People",
+            "description": "The people and their devices that will be used used for getting location data.",
+            "required": false,
+            "items": {
+                "type": "object",
+                "title": "People/Devices",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "A human-readable name for your sensor.",
+                        "placeholder": "Pete",
+                        "required": true
+                    },
+                    "target": {
+                        "type": "string",
+                        "title": "Target",
+                        "description": "Either a hostname or IP address",
+                        "placeholder": "PetesiPhone",
+                        "required": true
+                    },
+                    "threshold": {
+                        "type": "integer",
+                        "title": "Threshold",
+                        "placeholder": "optional, default: 10000"
+                    },
+                    "pingInterval": {
+                        "type": "integer",
+                        "title": "Ping Interval",
+                        "placeholder": "optional, default: 10000"
+                    },
+                    "ignoreReEnterExitSeconds": {
+                        "type": "integer",
+                        "title": "Ignore Re Entry Exit Seconds",
+                        "placeholder": "optional, default: 0"
+                    }
+                }
+            }
+        },
+        "threshold": {
+            "type": "integer",
+            "title": "Threshold",
+            "description": "In minutes.",
+            "placeholder": "optional, default: 15",
+            "required": false
+        },
+        "anyoneSensor": {
+            "type": "boolean",
+            "title": "Anyone Sensor",
+            "description": "This sensor is used for HomeKit Automations, See 'Anyone' Section of the project page for more details.",
+            "required": false
+        },
+        "nooneSensor": {
+            "type": "boolean",
+            "title": "No One Sensor",
+            "description": "This sensor is used for HomeKit Automations, See 'No One' Section of the project page for more details.",
+            "required": false
+        },
+        "webhookPort": {
+            "type": "integer",
+            "title": "Webhook Port",
+            "description": "An explanation about the purpose of this instance.",
+            "placeholder": "optional, default: 51828",
+            "required": false
+        },
+        "cacheDirectory": {
+            "type": "string",
+            "title": "Cache Directory",
+            "description": "Directory location of cache.",
+            "placeholder": "optional, default: ./.node-persist/storage",
+            "required": false
+        },
+        "pingInterval": {
+            "type": "integer",
+            "title": "Ping Interval",
+            "description": "In milliseconds, if set to -1 than the ping mechanism will not be used.",
+            "placeholder": "optional, default: 10000",
+            "required": false
+        },
+        "ignoreReEnterExitSeconds": {
+            "type": "integer",
+            "title": "Ignore Re Entry Exit Seconds",
+            "description": "An explanation about the purpose of this instance.",
+            "placeholder": 0,
+            "required": false
+        }
+    }
+  }
+}
