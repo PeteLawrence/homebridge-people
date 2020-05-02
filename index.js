@@ -252,6 +252,11 @@ PeopleAccessory.prototype.successfulPingOccurredAfterWebhook = function() {
 }
 
 PeopleAccessory.prototype.setNewState = function(newState) {
+
+    if (!isInternetConnected) {
+        return;
+    }
+
     var oldState = this.stateCache;
 
     if (oldState != newState) {
@@ -278,6 +283,18 @@ PeopleAccessory.prototype.setNewState = function(newState) {
         
         this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
     }
+}
+
+function isInternetConnected() {
+    return co(function* () {
+        try {
+            var response = yield urllib.request("http://google.com/generate_204", { wd: 'nodejs' }); // This is co-request.                             
+            var statusCode = response.statusCode;
+            return statusCode == 204;
+        } catch (e) {
+            return false;
+        }
+    });
 }
 
 PeopleAccessory.prototype.getServices = function() {
