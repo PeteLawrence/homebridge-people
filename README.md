@@ -9,7 +9,7 @@ Before installing this plugin, you should install Homebridge using the [official
 
 ### Install via Homebridge Config UI X
 
-1. Search for `Camera FFmpeg` on the Plugins tab of [Config UI X](https://www.npmjs.com/package/homebridge-config-ui-x).
+1. Search for `Homebridge People Guest Mode` on the Plugins tab of [Config UI X](https://www.npmjs.com/package/homebridge-config-ui-x).
 2. Install the `Homebridge People Guest Mode` plugin and use the form to enter your configuration.
 
 ### Manual Installation
