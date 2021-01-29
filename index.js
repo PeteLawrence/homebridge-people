@@ -30,7 +30,7 @@ function PeoplePlatform(log, config){
     this.cacheDirectory = config["cacheDirectory"] || HomebridgeAPI.user.persistPath();
     this.pingInterval = config["pingInterval"] || 10000;
     this.ignoreReEnterExitSeconds = config["ignoreReEnterExitSeconds"] || 0;
-    this.people = config['people'];
+    this.people = config['people'] || [];
     this.storage = require('node-persist');
     this.storage.initSync({dir:this.cacheDirectory});
     this.webhookQueue = [];
@@ -270,17 +270,17 @@ PeopleAccessory.prototype.setNewState = function(newState) {
         var lastSuccessfulPingMoment = "none";
         var lastWebhookMoment = "none";
         var lastSuccessfulPing = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
-        
+
         if(lastSuccessfulPing) {
             lastSuccessfulPingMoment = moment(lastSuccessfulPing).format();
         }
-        
+
         var lastWebhook = this.platform.storage.getItemSync('lastWebhook_' + this.target);
-        
+
         if(lastWebhook) {
             lastWebhookMoment = moment(lastWebhook).format();
         }
-        
+
         this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
     }
 }
@@ -288,7 +288,7 @@ PeopleAccessory.prototype.setNewState = function(newState) {
 function isInternetConnected() {
     return co(function* () {
         try {
-            var response = yield urllib.request("http://google.com/generate_204", { wd: 'nodejs' }); // This is co-request.                             
+            var response = yield urllib.request("http://google.com/generate_204", { wd: 'nodejs' }); // This is co-request.
             var statusCode = response.statusCode;
             return statusCode == 204;
         } catch (e) {
@@ -359,7 +359,7 @@ function GuestModeSwitch(log, name, platform) {
     this.service = new Service.Switch(this.name);
     this.service.getCharacteristic(Characteristic.On)
         .on('set', this.setOn.bind(this));
-  
+
     this.service.setCharacteristic(Characteristic.On, this.getStateFromCache());
 }
 
