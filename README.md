@@ -56,7 +56,7 @@ Before installing this plugin, you should install Homebridge using the [official
 - `webhookPort`: Port to accept incoming webhooks. (Default: `51828`)
 - `cacheDirectory`: *ONLY RECOMMENDED FOR EXPERTS* Directory to store cache data in. (Default: Homebridge's persistance directory)
 
-# Thanks
+## Thanks
 Thanks to:
 * [PeteLawrence](https://github.com/PeteLawrence) - for creating a great plugin, Homebrige People
 * [nfarina](https://github.com/nfarina) - For creating the Homebridge dummy switch.
