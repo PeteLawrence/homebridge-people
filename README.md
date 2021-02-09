@@ -31,6 +31,7 @@ Before installing this plugin, you should install Homebridge using the [official
 {
   "platforms": [
     {
+      "name": "Homebridge People Guest Mode",
       "people": [
         {
           "name": "Zack",

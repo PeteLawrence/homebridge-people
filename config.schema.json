@@ -4,111 +4,126 @@
     "singular": true,
     "headerDisplay": "Homebridge Plugin Providing IP Based Presence Detection.",
     "footerDisplay": "Report issues [here](https://github.com/zackwag/homebridge-people-guest-mode/issues).",
-       "schema": {
-          "threshold": {
-              "title": "Ping Threshold",
-              "type": "integer",
-              "required": false,
-              "description": "(Optional) Time in minutes until considered away. Defaults to 15."
-          },
-          "pingInterval": {
-              "title": "Ping Interval",
-              "type": "integer",
-              "required": false,
-              "description": "(Optional) Time in milliseconds for how often to ping a device. -1 disables ping. Defaults to 10000 (10s)."
-          },
-          "ignoreReEnterExitSeconds": {
-              "title": "Seconds to Ignore Re-Enter/Exit",
-              "type": "integer",
-              "required": false,
-              "description": "(Optional) Time in seconds to trigger state change if no re-enter/exit occurs. 0 will cause every enter/exit to trigger state change. Defaults to 0."
-          },
-          "webhookPort": {
-              "title": "WebHook Port",
-              "type": "integer",
-              "required": false,
-              "description": "(Optional) Port to accept incoming webhooks. Defaults to 51828."
-          },
-          "cacheDirectory": {
-              "title": "Cache Directory",
-              "type": "string",
-              "required": false,
-              "description": "(Optional) Directory to store cache data in. Defaults to Homebridge persistance path."
-          },
-          "people": {
-              "type": "array",
-              "items": {
-                  "title": "Person Sensor",
-                  "type": "object",
-                  "properties": {
-                      "name": {
-                          "title": "Name",
-                          "type": "string",
-                          "required": true,
-                          "description": "Set the occupancy sensor name for display in the Home app."
-                      },
-                      "target": {
-                          "name": "IP Address/Hostname",
-                          "type": "string",
-                          "required": true,
-                          "description": "Set the target for ping to derive presence."
-                      },
-                      "threshold": {
-                          "title": "Ping Threshold",
-                          "type": "integer",
-                          "required": false,
-                          "description": "(Optional) Time in minutes until considered away. Defaults to global setting."
-                      },
-                      "pingInterval": {
-                          "title": "Ping Interval",
-                          "type": "integer",
-                          "required": false,
-                          "description": "(Optional) Time in milliseconds for how often to ping a device. -1 disables ping. Defaults to global setting."
-                      },
-                      "ignoreReEnterExitSeconds": {
-                          "title": "Seconds to Ignore Re-Enter/Exit",
-                          "type": "integer",
-                          "required": false,
-                          "description": "(Optional) Time in seconds to trigger state change if no re-enter/exit occurs. 0 will cause every enter/exit to trigger state change. Defaults to global setting."
-                      }
-                  }
-              }
-          }
-      },
-    "layout": [
-      {
-        "type": "section",
-        "title": "People",
-        "expandable": true,
-        "expanded": true,
-        "items": [
-          {
-            "key": "people",
+    "schema": {
+        "name": {
+            "title": "Name",
+            "type": "string",
+            "required": true,
+            "default": "Homebridge People Guest Mode",
+            "description": "Plugin name as displayed in the Homebridge log"
+        },
+        "threshold": {
+            "title": "Ping Threshold",
+            "type": "integer",
+            "required": false,
+            "description": "(Optional) Time in minutes until considered away. Defaults to 15."
+        },
+        "pingInterval": {
+            "title": "Ping Interval",
+            "type": "integer",
+            "required": false,
+            "description": "(Optional) Time in milliseconds for how often to ping a device. -1 disables ping. Defaults to 10000 (10s)."
+        },
+        "ignoreReEnterExitSeconds": {
+            "title": "Seconds to Ignore Re-Enter/Exit",
+            "type": "integer",
+            "required": false,
+            "description": "(Optional) Time in seconds to trigger state change if no re-enter/exit occurs. 0 will cause every enter/exit to trigger state change. Defaults to 0."
+        },
+        "webhookPort": {
+            "title": "WebHook Port",
+            "type": "integer",
+            "required": false,
+            "description": "(Optional) Port to accept incoming webhooks. Defaults to 51828."
+        },
+        "cacheDirectory": {
+            "title": "Cache Directory",
+            "type": "string",
+            "required": false,
+            "description": "(Optional) Directory to store cache data in. Defaults to Homebridge persistance path."
+        },
+        "people": {
             "type": "array",
-            "orderable": false,
-            "buttonText": "Add Person",
+            "items": {
+                "title": "Person Sensor",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "title": "Name",
+                        "type": "string",
+                        "required": true,
+                        "description": "Set the occupancy sensor name for display in the Home app."
+                    },
+                    "target": {
+                        "name": "IP Address/Hostname",
+                        "type": "string",
+                        "required": true,
+                        "description": "Set the target for ping to derive presence."
+                    },
+                    "threshold": {
+                        "title": "Ping Threshold",
+                        "type": "integer",
+                        "required": false,
+                        "description": "(Optional) Time in minutes until considered away. Defaults to global setting."
+                    },
+                    "pingInterval": {
+                        "title": "Ping Interval",
+                        "type": "integer",
+                        "required": false,
+                        "description": "(Optional) Time in milliseconds for how often to ping a device. -1 disables ping. Defaults to global setting."
+                    },
+                    "ignoreReEnterExitSeconds": {
+                        "title": "Seconds to Ignore Re-Enter/Exit",
+                        "type": "integer",
+                        "required": false,
+                        "description": "(Optional) Time in seconds to trigger state change if no re-enter/exit occurs. 0 will cause every enter/exit to trigger state change. Defaults to global setting."
+                    }
+                }
+            }
+        }
+    },
+    "layout": [
+        {
+            "type": "section",
+            "title": "Global Simple",
             "items": [
-              "people[].name",
-              "people[].target",
-              "people[].threshold",
-              "people[].pingInterval",
-              "people[].ignoreReEnterExitSeconds"
+                "name"
             ]
-          }
-        ]
-      },
-      {
-        "type": "section",
-        "title": "Global Advanced",
-        "expandable": true,
-        "expanded": false,
-        "items": [
-          "threshold",
-          "pingInterval",
-          "ignoreReEnterExitSeconds",
-          "webhookPort",
-          "cacheDirectory"
-        ]
-      }
+        },
+        {
+            "name": "name",
+            "type": "section",
+            "title": "People",
+            "expandable": true,
+            "expanded": true,
+            "items": [
+                {
+                    "key": "people",
+                    "type": "array",
+                    "orderable": false,
+                    "buttonText": "Add Person",
+                    "items": [
+                        "people[].name",
+                        "people[].target",
+                        "people[].threshold",
+                        "people[].pingInterval",
+                        "people[].ignoreReEnterExitSeconds"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "section",
+            "title": "Global Advanced",
+            "expandable": true,
+            "expanded": false,
+            "items": [
+                "threshold",
+                "pingInterval",
+                "ignoreReEnterExitSeconds",
+                "webhookPort",
+                "cacheDirectory"
+            ]
+        }
     ]
-  }
+}
